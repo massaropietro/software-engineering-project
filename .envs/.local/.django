@@ -1,0 +1,9 @@
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+
+DJANGO_SETTINGS_MODULE=config.settings.local
+
+REDIS_URL=redis://redis:6379/0
+
+CELERY_FLOWER_USER=admin
+CELERY_FLOWER_PASSWORD=admin

@@ -1,0 +1,81 @@
+volumes:
+  backend_local_postgres_data: { }
+  backend_local_postgres_data_backups: { }
+  backend_local_redis_data: { }
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: compose/local/django/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+      - mailpit
+    volumes:
+      - /app/.venv
+      - ./backend:/app:z
+    env_file:
+      - .envs/.local/.django
+      - .envs/.local/.postgres
+    ports:
+      - '8000:8000'
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: compose/production/postgres/Dockerfile
+    volumes:
+      - backend_local_postgres_data:/var/lib/postgresql/data
+      - backend_local_postgres_data_backups:/backups
+    env_file:
+      - .envs/.local/.postgres
+
+  mailpit:
+    image: docker.io/axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+
+  redis:
+    image: docker.io/redis:7.2
+    volumes:
+      - backend_local_redis_data:/data
+
+  celeryworker:
+    <<: *django
+    depends_on:
+      - redis
+      - postgres
+      - mailpit
+    ports: [ ]
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    depends_on:
+      - redis
+      - postgres
+      - mailpit
+    ports: [ ]
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    ports:
+      - '5555:5555'
+    command: /start-flower
+
+  frontend:
+    build:
+      context: .
+      dockerfile: compose/local/frontend/Dockerfile
+    volumes:
+      - ./frontend:/app:z
+      - /app/node_modules
+    ports:
+      - '5173:5173'
+    env_file:
+      - .envs/.local/.frontend
+    depends_on:
+      - django

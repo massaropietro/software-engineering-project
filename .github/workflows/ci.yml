@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: docker compose -f docker-compose.local.yml build django
+
+      - name: Run Backend Linting
+        run: docker compose -f docker-compose.local.yml run --rm django sh -c "ruff check . && ruff format --check ."
+
+      - name: Run Backend Tests
+        run: docker compose -f docker-compose.local.yml run --rm django sh -c "coverage run -m pytest"
