@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+    <defs>
+        <!-- soft shadow -->
+        <filter id="ds" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0B1B3A" flood-opacity="0.25"/>
+        </filter>
+
+        <!-- gradients -->
+        <radialGradient id="gSkin" cx="35%" cy="30%" r="75%">
+            <stop offset="0%"  stop-color="#86E4EA"/>
+            <stop offset="55%" stop-color="#59B0BE"/>
+            <stop offset="100%" stop-color="#2E8FA0"/>
+        </radialGradient>
+
+        <radialGradient id="gBelly" cx="40%" cy="35%" r="85%">
+            <stop offset="0%" stop-color="#E9FFFB"/>
+            <stop offset="70%" stop-color="#BFEDE6"/>
+            <stop offset="100%" stop-color="#8DD6CC"/>
+        </radialGradient>
+
+        <linearGradient id="gSuit" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2F3F6B"/>
+            <stop offset="100%" stop-color="#18224A"/>
+        </linearGradient>
+
+        <linearGradient id="gSpike" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#FFB3A7"/>
+            <stop offset="100%" stop-color="#C17E73"/>
+        </linearGradient>
+
+        <linearGradient id="gHandle" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#FFB14A"/>
+            <stop offset="100%" stop-color="#E36A2A"/>
+        </linearGradient>
+
+        <radialGradient id="gLens" cx="35%" cy="30%" r="85%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+            <stop offset="60%" stop-color="#E1F7F4" stop-opacity="0.45"/>
+            <stop offset="100%" stop-color="#BFEAE6" stop-opacity="0.25"/>
+        </radialGradient>
+
+        <!-- clip for lens content -->
+        <clipPath id="clipLens">
+            <circle cx="84" cy="68" r="22"/>
+        </clipPath>
+    </defs>
+
+    <!-- ground shadow (subtle) -->
+    <ellipse cx="52" cy="114" rx="28" ry="7" fill="#0B1B3A" opacity="0.10"/>
+
+    <!-- tail behind -->
+    <path d="M22 94
+           C 10 86, 12 70, 30 70
+           C 42 70, 42 88, 30 90
+           C 22 92, 22 102, 34 104"
+          fill="url(#gSkin)" filter="url(#ds)"/>
+    <path d="M26 86
+           C 22 82, 24 76, 32 76"
+          fill="none" stroke="#EAA39A" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+
+    <!-- body + suit -->
+    <g filter="url(#ds)">
+        <path d="M34 78
+             C 30 92, 34 112, 54 114
+             C 70 116, 82 106, 80 88
+             C 78 72, 64 64, 52 66
+             C 42 68, 36 70, 34 78 Z"
+              fill="url(#gSuit)"/>
+        <!-- belly panel -->
+        <path d="M45 80
+             C 42 92, 45 106, 56 107
+             C 66 108, 72 100, 71 88
+             C 70 78, 62 74, 54 75
+             C 49 76, 46 77, 45 80 Z"
+              fill="url(#gBelly)" opacity="0.95"/>
+
+        <!-- small "EMA" on suit (optional) -->
+        <text x="46" y="92" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial"
+              font-size="10" font-weight="800" fill="#EAF2FF" opacity="0.95">EMA</text>
+    </g>
+
+    <!-- arms -->
+    <g filter="url(#ds)">
+        <path d="M36 86 C 30 88, 28 96, 32 100 C 36 104, 44 100, 44 94 C 44 88, 40 84, 36 86 Z"
+              fill="url(#gSkin)"/>
+        <path d="M71 88 C 78 88, 82 94, 80 100 C 78 106, 68 106, 66 98 C 64 92, 66 88, 71 88 Z"
+              fill="url(#gSkin)"/>
+    </g>
+
+    <!-- head -->
+    <g filter="url(#ds)">
+        <!-- spikes -->
+        <path d="M38 44 L30 36 L40 34 Z" fill="url(#gSpike)"/>
+        <path d="M44 36 L38 26 L50 28 Z" fill="url(#gSpike)"/>
+        <path d="M54 32 L52 20 L64 26 Z" fill="url(#gSpike)"/>
+        <path d="M66 32 L76 20 L76 30 Z" fill="url(#gSpike)" opacity="0.95"/>
+
+        <!-- head blob -->
+        <path d="M28 58
+             C 28 38, 42 28, 58 28
+             C 76 28, 92 38, 92 56
+             C 92 74, 78 84, 60 84
+             C 42 84, 28 74, 28 58 Z"
+              fill="url(#gSkin)"/>
+
+        <!-- cheek blush -->
+        <ellipse cx="42" cy="66" rx="6" ry="4" fill="#FF9C8E" opacity="0.35"/>
+        <ellipse cx="67" cy="66" rx="6" ry="4" fill="#FF9C8E" opacity="0.30"/>
+
+        <!-- eyes -->
+        <g>
+            <circle cx="44" cy="56" r="9" fill="#0B1233" opacity="0.92"/>
+            <circle cx="44" cy="56" r="6.5" fill="#1A2D6B" opacity="0.75"/>
+            <circle cx="45" cy="58" r="3.2" fill="#000"/>
+            <circle cx="41" cy="52" r="2.6" fill="#fff" opacity="0.95"/>
+
+            <circle cx="66" cy="56" r="9" fill="#0B1233" opacity="0.92"/>
+            <circle cx="66" cy="56" r="6.5" fill="#1A2D6B" opacity="0.75"/>
+            <circle cx="67" cy="58" r="3.2" fill="#000"/>
+            <circle cx="63" cy="52" r="2.6" fill="#fff" opacity="0.95"/>
+        </g>
+
+        <!-- smile -->
+        <path d="M52 68 C 56 72, 60 72, 64 68" fill="none" stroke="#0B1233" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    </g>
+
+    <!-- magnifying glass (front) -->
+    <g filter="url(#ds)">
+        <!-- handle -->
+        <path d="M104 100
+             C 108 104, 108 110, 104 114
+             C 100 118, 94 118, 90 114
+             L 76 100
+             C 72 96, 72 90, 76 86
+             C 80 82, 86 82, 90 86 Z"
+              fill="url(#gHandle)"/>
+
+        <!-- rim -->
+        <circle cx="84" cy="68" r="23" fill="#6B6F7B" opacity="0.35"/>
+        <circle cx="84" cy="68" r="22" fill="#2E2F3A" opacity="0.20"/>
+        <circle cx="84" cy="68" r="21" fill="url(#gLens)"/>
+        <circle cx="84" cy="68" r="22" fill="none" stroke="#3A3C46" stroke-width="3" opacity="0.75"/>
+
+        <!-- lens glare -->
+        <path d="M72 56 C 78 50, 86 49, 92 54" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+        <path d="M74 64 C 78 60, 84 60, 88 63" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+
+        <!-- tiny bug inside lens -->
+        <g clip-path="url(#clipLens)" opacity="0.95">
+            <circle cx="88" cy="78" r="5" fill="#6A2CA0"/>
+            <circle cx="88" cy="78" r="2.2" fill="#32D4FF" opacity="0.9"/>
+            <path d="M88 73 C 92 70, 96 70, 100 73" stroke="#1A1B2B" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M88 73 C 84 70, 80 70, 76 73" stroke="#1A1B2B" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <line x1="83" y1="83" x2="78" y2="88" stroke="#1A1B2B" stroke-width="2" stroke-linecap="round"/>
+            <line x1="93" y1="83" x2="98" y2="88" stroke="#1A1B2B" stroke-width="2" stroke-linecap="round"/>
+        </g>
+    </g>
+</svg>

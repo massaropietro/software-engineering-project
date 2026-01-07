@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@plugin './hero.js';
+
+@theme {
+    --font-sans: "font", sans-serif;
+
+    --color-main: #504B8D;
+    --color-card: #111827;
+    --color-header: #E5E7EB;
+    --color-muted: #9CA3AF;
+    --color-text-primary: #DCF5F7;
+    --color-background: #E1F7F4;
+    --color-background-dark: #E1F7F4;
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
