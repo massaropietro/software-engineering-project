@@ -1,96 +1,154 @@
-import {useState} from "react";
-import {CheckboxGroup, Checkbox, Input} from "@heroui/react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import ClassesList from "../components/classesList.jsx";
 
 export default function ClassesSelection() {
+    // Rimosso il campo 'value', ora gli oggetti hanno solo 'label'
     const [cities] = useState([
-        {value: "user-authentication-controller", label: "UserAuthenticationController"},
-        {value: "abstract-data-factory", label: "AbstractDataFactory"},
-        {value: "payment-gateway-service", label: "PaymentGatewayService"},
-        {value: "legacy-system-adapter", label: "LegacySystemAdapter"},
-        {value: "global-configuration-manager", label: "GlobalConfigurationManager"},
-        {value: "async-message-consumer", label: "AsyncMessageConsumer"},
-        {value: "database-connection-pool", label: "DatabaseConnectionPool"},
-        {value: "json-response-builder", label: "JsonResponseBuilder"},
-        {value: "security-policy-enforcer", label: "SecurityPolicyEnforcer"},
-        {value: "xml-http-request-handler", label: "XmlHttpRequestHandler"},
-        {value: "main-application-runner", label: "MainApplicationRunner"},
-        {value: "customer-repository-impl", label: "CustomerRepositoryImpl"},
-        {value: "order-processing-strategy", label: "OrderProcessingStrategy"},
-        {value: "email-notification-sender", label: "EmailNotificationSender"},
-        {value: "file-system-watcher", label: "FileSystemWatcher"},
-        {value: "network-socket-listener", label: "NetworkSocketListener"},
-        {value: "cache-invalidation-job", label: "CacheInvalidationJob"},
-        {value: "error-logging-aspect", label: "ErrorLoggingAspect"},
-        {value: "transaction-rollback-exception", label: "TransactionRollbackException"},
-        {value: "virtual-machine-monitor", label: "VirtualMachineMonitor"},
+        { label: "UserAuthenticationController" },
+        { label: "AbstractDataFactory" },
+        { label: "PaymentGatewayService" },
+        { label: "LegacySystemAdapter" },
+        { label: "GlobalConfigurationManager" },
+        { label: "AsyncMessageConsumer" },
+        { label: "DatabaseConnectionPool" },
+        { label: "JsonResponseBuilder" },
+        { label: "SecurityPolicyEnforcer" },
+        { label: "XmlHttpRequestHandler" },
+        { label: "MainApplicationRunner" },
+        { label: "CustomerRepositoryImpl" },
+        { label: "OrderProcessingStrategy" },
+        { label: "EmailNotificationSender" },
+        { label: "FileSystemWatcher" },
+        { label: "NetworkSocketListener" },
+        { label: "CacheInvalidationJob" },
+        { label: "ErrorLoggingAspect" },
+        { label: "TransactionRollbackException" },
+        { label: "VirtualMachineMonitor" },
     ]);
     const [selected, setSelected] = useState([]);
     const [keyword, setKeyword] = useState("");
-    const [file, setFile] = useState(null);
 
     const filtered = cities.filter((c) => {
         const q = keyword.trim().toLowerCase();
-        return q === "" || c.label.toLowerCase().includes(q) || c.value.toLowerCase().includes(q);
+        // Filtro solo su label dato che value non esiste più
+        return q === "" || c.label.toLowerCase().includes(q);
     });
 
+    const handleCheckboxChange = (checked, label) => {
+        if (checked) {
+            setSelected((prev) => [...prev, label]);
+        } else {
+            setSelected((prev) => prev.filter((item) => item !== label));
+        }
+    };
+
+    // Logica per Select All basata sulla label
+    const isAllSelected = cities.length > 0 && selected.length === cities.length;
+
+    const handleSelectAllChange = (checked) => {
+        if (checked) {
+            setSelected(cities.map((c) => c.label));
+        } else {
+            setSelected([]);
+        }
+    };
+
+    const hasSelection = selected.length > 0;
+
+    // Nota: Ho rimosso la logica 'selectedLabels' perché ora 'selected' contiene direttamente le label.
+
     return (
-        <>
-            <div className="mb-[30px]">
-                <Input
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    label="Cerca le classi del tuo progetto"
-                    placeholder="Digita il nome di una classe..."
-                    variant="bordered"
-                    color="primary"
-                    classNames={{
-                        label: "text-gray-200",
-                        input: "text-gray-200 placeholder:text-gray-400",
-                    }}
-                />
-                <Input
-                    type="file"
-                    label="Upload your project ziped file..."
-                    onChange={(e) => setFile(e.target.files[0])}
-                    color="primary"
-                    variant="bordered"
-                    classNames={{
-                        label: "text-gray-200",
-                        input: "text-gray-200 placeholder:text-gray-400",
-                    }}
-                />
-                {file && (
-                    <span className="text-text-primary mt-2.5 block">
-                        Uploaded file: {file.name}, {file.type}
+        <div
+            className={`flex flex-col lg:flex-row w-full gap-6 overflow-hidden mx-auto transition-all duration-700 ease-in-out ${
+                hasSelection ? "lg:max-w-6xl max-w-xl" : "max-w-xl"
+            }`}
+        >
+            {/* Pannello Sinistro: Selezione */}
+            <div
+                className={`flex flex-col space-y-6 transition-all duration-700 ease-in-out w-full ${
+                    hasSelection ? "lg:w-1/2" : "w-full"
+                }`}
+            >
+                <div className="grid w-full items-center gap-1.5">
+                    <Label htmlFor="search-classes" className="text-input-foreground">
+                        Cerca le classi del tuo progetto
+                    </Label>
+                    <Input
+                        id="search-classes"
+                        type="text"
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="Digita il nome di una classe..."
+                        className="text-input-foreground placeholder:text-gray-400 border-2 border-white h-14"
+                    />
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                    <div className="flex justify-start">
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="select-all"
+                                checked={isAllSelected}
+                                onCheckedChange={handleSelectAllChange}
+                                className="border-white data-[state=checked]:bg-white data-[state=checked]:text-black border-2"
+                            />
+                            <Label
+                                htmlFor="select-all"
+                                className="text-sm font-medium leading-none cursor-pointer text-input-foreground"
+                            >
+                                Seleziona tutto ({cities.length})
+                            </Label>
+                        </div>
+                    </div>
+
+                    <div className="rounded-md border-2 border-white p-4">
+                        <ScrollArea className="h-[240px] w-full pr-4">
+                            <div className="flex flex-col gap-3">
+                                {filtered.map((city) => (
+                                    <div key={city.label} className="flex items-center space-x-2">
+                                        {/* Utilizzo city.label come ID e valore di riferimento */}
+                                        <Checkbox
+                                            id={city.label}
+                                            checked={selected.includes(city.label)}
+                                            className="border-white data-[state=checked]:bg-white data-[state=checked]:text-button border-2"
+                                            onCheckedChange={(checked) => handleCheckboxChange(checked, city.label)}
+                                        />
+                                        <Label
+                                            htmlFor={city.label}
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-input-foreground"
+                                        >
+                                            {city.label}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </div>
+            </div>
+
+            {/* Pannello Destro: Riepilogo Animato */}
+            <div
+                className={`flex flex-col space-y-4 overflow-hidden transition-[width,max-height,opacity,transform,padding] duration-700 ease-in-out justify-center ${
+                    hasSelection
+                        ? "w-full max-h-[1000px] opacity-100 translate-y-0 pt-6 border-t-2 border-white " +
+                        "lg:w-1/2 lg:max-h-none lg:translate-x-0 lg:translate-y-0 lg:pt-0 lg:pl-6 lg:border-t-0 lg:border-l-2"
+                        : "w-full max-h-0 opacity-0 translate-y-10 p-0 border-0 " +
+                        "lg:w-0 lg:max-h-none lg:translate-x-10 lg:translate-y-0"
+                }`}
+            >
+                <div>
+                    <span className="text-input-foreground block mb-2 font-medium whitespace-nowrap">
+                        Selected Class:
                     </span>
-                )}
+                    {/* Passo direttamente 'selected' che ora contiene le label */}
+                    <ClassesList classesList={selected} />
+                </div>
             </div>
-            <div className="h-[240px] overflow-y-auto w-full">
-                <CheckboxGroup
-                    defaultValue={[]}
-                    onValueChange={setSelected}
-                    classNames={{
-                        label: "text-gray-200",
-                    }}
-                >
-                    {filtered.map((city) => (
-                        <Checkbox
-                            key={city.value}
-                            value={city.value}
-                            classNames={{
-                                label: "text-gray-200",
-                            }}
-                        >
-                            <span className="text-text-primary">{city.label}</span>
-                        </Checkbox>
-                    ))}
-                </CheckboxGroup>
-            </div>
-            { selected.length>0 && <span className="text-text-primary block w-full pt-[30px]">
-                Selected Class:
-                <ClassesList classesList={selected}/>
-            </span>}
-        </>
+        </div>
     );
 }

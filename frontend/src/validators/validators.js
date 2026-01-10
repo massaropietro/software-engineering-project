@@ -7,19 +7,16 @@ export const projectSchema = yup.object().shape({
         .min(10, "La descrizione deve essere di almeno 10 caratteri"),
     repoUrl: yup.string()
         .ensure()
-        // Se c'è il file zip, l'URL non è richiesto, altrimenti sì
         .when('zipFile', {
             is: (zipFile) => zipFile && zipFile.length > 0,
             then: (schema) => schema.notRequired(),
             otherwise: (schema) => schema.required("L'URL della repository è obbligatorio")
         })
-        // Validazione regex manuale per permettere stringa vuota se non obbligatorio
         .test('is-valid-url', "Inserisci un URL valido", (value) => {
             if (!value) return true;
             return /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(value);
         }),
     zipFile: yup.mixed()
-        // Se c'è l'URL, il file non è richiesto, altrimenti sì
         .when('repoUrl', {
             is: (repoUrl) => repoUrl && repoUrl.length > 0,
             then: (schema) => schema.notRequired(),
@@ -30,4 +27,4 @@ export const projectSchema = yup.object().shape({
             const file = value[0];
             return file.name.endsWith('.zip') || file.type === 'application/zip';
         })
-}, [['repoUrl', 'zipFile']]); // Importante: abilita la dipendenza ciclica tra i due campi
+}, [['repoUrl', 'zipFile']]);

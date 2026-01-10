@@ -16,7 +16,6 @@ export const projectSlice = createSlice({
             state.projectName = projectName;
             state.description = description;
             state.repoUrl = repoUrl;
-            // Aggiorniamo il file se presente nel payload (o null se rimosso)
             if (zipFile !== undefined) {
                 state.zipFile = zipFile;
             }
