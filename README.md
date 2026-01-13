@@ -21,3 +21,6 @@ Per garantire il rigore scientifico e la stabilità del software di analisi, seg
 Tutti i membri del team sono tenuti a rispettare le regole di branching (Feature/Hotfix) e il processo di Pull Request descritti nella documentazione ufficiale:
 
 👉 **[Consulta la Wiki: Workflow e Gestione Branch](https://github.com/massaroPietro/software-engineering-project/wiki/Workflow-di-sviluppo)**
+
+### 📝 Mockup della piattaforma 
+👉 **[Consulta i fil su Figma](https://www.figma.com/design/CHyBAE8LSH4TDhv5724DKp/software-engeneering?node-id=3-6182&m=dev&t=G7xhsZW2z8ChzFXq-1)**
