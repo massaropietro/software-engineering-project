@@ -68,6 +68,21 @@
         </div>
         <div class="flex items-center gap-5">
           <Button
+            @click="toggleLanguage"
+            class="px-2 py-1 flex items-center gap-2"
+            outlined
+            rounded
+          >
+            <img
+              :src="currentFlag"
+              alt="Language Flag"
+              class="w-4 h-auto border border-surface-300 dark:border-surface-600 rounded-sm"
+            />
+            <span class="font-medium text-surface-600 dark:text-surface-200 uppercase text-sm">
+              {{ locale }}
+            </span>
+          </Button>
+          <Button
             @click="toggleConfigurator"
             icon="pi pi-palette"
             class="text-xl! leading-none! text-surface-500 dark:text-surface-400 cursor-pointer"
@@ -97,16 +112,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useLayout } from '@/composables/layout'
 import AppConfigurator from '@/components/AppConfigurator.vue'
 import AppMenu from '@/components/AppMenu.vue'
 import { navigation } from '@/layout/navigation'
 import Breadcrumb from 'primevue/breadcrumb'
+import itFlag from '@/assets/it.svg'
+import usFlag from '@/assets/us.svg'
 
 const { toggleDarkMode, isDark } = useLayout()
 const route = useRoute()
+const { locale } = useI18n()
 
 const appConfigurator = ref(null)
 
@@ -130,6 +149,14 @@ const items = computed(() => {
 function toggleConfigurator(event) {
   appConfigurator.value.toggle(event)
 }
+
+function toggleLanguage() {
+  locale.value = locale.value === 'it' ? 'en' : 'it'
+}
+
+const currentFlag = computed(() => {
+  return locale.value === 'it' ? itFlag : usFlag
+})
 </script>
 
 <style scoped>

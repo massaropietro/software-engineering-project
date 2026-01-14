@@ -1,5 +1,7 @@
+
 <template>
-    <div class="card">
+<div class="card">
+        <div class="font-semibold text-xl mb-4">{{ $t('projects') }}</div>
         <DataTable v-model:filters="filters" :value="products" paginator :rows="10" dataKey="code" filterDisplay="row" :loading="loading"
                    :globalFilterFields="['name', 'code', 'status']">
 
@@ -70,7 +72,7 @@
 
         </DataTable>
     </div>
-</template>
+  </template>
 
 <script>
 import { FilterMatchMode } from '@primevue/core/api';
