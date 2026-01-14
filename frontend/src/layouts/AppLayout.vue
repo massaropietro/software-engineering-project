@@ -50,6 +50,21 @@
           >
             <i class="pi pi-bars text-xl!" />
           </a>
+
+          <!-- Breadcrumb Spostata Qui (Sinistra) -->
+           <Breadcrumb :home="home" :model="items" class="!bg-transparent !border-none !p-0">
+                <template #item="{ item, props }">
+                    <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+                        <a :href="href" v-bind="props.action" @click="navigate">
+                            <span :class="[item.icon, 'text-color']" />
+                            <span class="text-primary font-semibold">{{ item.label }}</span>
+                        </a>
+                    </router-link>
+                    <a v-else :href="item.url" :target="item.target" v-bind="props.action">
+                        <span class="text-surface-700 dark:text-surface-0">{{ item.label }}</span>
+                    </a>
+                </template>
+            </Breadcrumb>
         </div>
         <div class="flex items-center gap-5">
           <Button
@@ -69,6 +84,7 @@
         </div>
       </div>
       <div class="p-8 flex flex-col flex-auto">
+
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -81,21 +97,39 @@
 </template>
 
 <script setup>
-// ... (script setup)
-import { ref } from 'vue' // Re-added ref
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useLayout } from '@/composables/layout'
 import AppConfigurator from '@/components/AppConfigurator.vue'
 import AppMenu from '@/components/AppMenu.vue'
 import { navigation } from '@/layout/navigation'
+import Breadcrumb from 'primevue/breadcrumb'
 
 const { toggleDarkMode, isDark } = useLayout()
+const route = useRoute()
 
 const appConfigurator = ref(null)
+
+// Breadcrumb Logic
+const home = ref({
+    icon: 'pi pi-home',
+    route: '/'
+});
+
+const items = computed(() => {
+    // Genera gli items basandosi sull'array matched delle rotte
+    // Filtra la root '/' e usa il nome della rotta o il meta title come etichetta
+    return route.matched
+        .filter(r => r.path !== '/' && r.name && r.meta.breadcrumb !== false)
+        .map(r => ({
+            label: r.meta.title || r.name,
+            route: r.path
+        }))
+});
 
 function toggleConfigurator(event) {
   appConfigurator.value.toggle(event)
 }
-// toggleTheme removed as we use toggleDarkMode directly
 </script>
 
 <style scoped>

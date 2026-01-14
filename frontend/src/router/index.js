@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProjectsList from '@/views/projects/ProjectsList.vue'
 import ExampleView from '@/views/ExampleView.vue'
+import {routerPaths} from "@/constants/constants.js";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,8 +12,8 @@ const router = createRouter({
       component: AppLayout,
       children: [
         {
-          path: '',
-          name: 'home',
+          path: routerPaths.home.path,
+          name: routerPaths.home.name,
           component: ProjectsList,
         },
         {
