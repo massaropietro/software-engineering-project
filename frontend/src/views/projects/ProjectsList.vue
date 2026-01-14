@@ -1,4 +1,3 @@
-
 <template>
 <div class="card">
         <div class="font-semibold text-xl mb-4">{{ $t('projects') }}</div>
@@ -11,57 +10,57 @@
                         <InputIcon>
                             <i class="pi pi-search" />
                         </InputIcon>
-                        <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
+                        <InputText v-model="filters['global'].value" :placeholder="$t('project_list.keyword_search')" />
                     </IconField>
                 </div>
             </template>
 
-            <template #empty> No projects found. </template>
-            <template #loading> Loading projects data. Please wait. </template>
+            <template #empty> {{ $t('project_list.no_projects_found') }} </template>
+            <template #loading> {{ $t('project_list.loading') }} </template>
 
             <!-- Colonna Code -->
-            <Column field="code" header="Project #ID" style="min-width: 12rem">
+            <Column field="code" :header="$t('project_list.headers.code')" style="min-width: 12rem">
                 <template #body="{ data }">
                     {{ data.code }}
                 </template>
                 <template #filter="{ filterModel, filterCallback }">
-                    <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by ID" />
+                    <InputText v-model="filterModel.value" type="text" @input="filterCallback()" :placeholder="$t('project_list.placeholders.search_by_id')" />
                 </template>
             </Column>
 
             <!-- Colonna Name -->
-            <Column field="name" header="Name" style="min-width: 12rem">
+            <Column field="name" :header="$t('project_list.headers.name')" style="min-width: 12rem">
                 <template #body="{ data }">
                     {{ data.name }}
                 </template>
                 <template #filter="{ filterModel, filterCallback }">
-                    <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by name" />
+                    <InputText v-model="filterModel.value" type="text" @input="filterCallback()" :placeholder="$t('project_list.placeholders.search_by_name')" />
                 </template>
             </Column>
 
             <!-- Colonna URL -->
-            <Column field="category" header="GitHub repo URL" style="min-width: 12rem">
+            <Column field="category" :header="$t('project_list.headers.category')" style="min-width: 12rem">
                  <template #body="{ data }">
                     <a :href="data.category" target="_blank" class="text-blue-500 hover:underline">{{ data.category }}</a>
                 </template>
             </Column>
 
             <!-- Colonna Status -->
-            <Column field="status" header="Status" :showFilterMenu="false" style="min-width: 12rem">
+            <Column field="status" :header="$t('project_list.headers.status')" :showFilterMenu="false" style="min-width: 12rem">
                 <template #body="{ data }">
-                    <Tag :value="data.status" :severity="getSeverity(data.status)" />
+                    <Tag :value="getTranslatedStatus(data.status)" :severity="getSeverity(data.status)" />
                 </template>
                 <template #filter="{ filterModel, filterCallback }">
-                    <Select v-model="filterModel.value" @change="filterCallback()" :options="statuses" placeholder="Select One" showClear>
+                    <Select v-model="filterModel.value" @change="filterCallback()" :options="statuses" :placeholder="$t('project_list.placeholders.select_one')" showClear>
                         <template #option="slotProps">
-                            <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
+                            <Tag :value="getTranslatedStatus(slotProps.option)" :severity="getSeverity(slotProps.option)" />
                         </template>
                     </Select>
                 </template>
             </Column>
 
             <!-- Colonna Verified -->
-            <Column field="verified" header="Verified" dataType="boolean" style="min-width: 6rem">
+            <Column field="verified" :header="$t('project_list.headers.verified')" dataType="boolean" style="min-width: 6rem">
                 <template #body="{ data }">
                     <i class="pi" :class="{ 'pi-check-circle text-green-500': data.verified, 'pi-times-circle text-red-400': !data.verified }"></i>
                 </template>
@@ -145,6 +144,11 @@ export default {
                 default:
                     return null;
             }
+        },
+        getTranslatedStatus(status) {
+            // Converte lo status (es. "IN PROGRESS") nella chiave del json (es. "in_progress")
+            const key = status.toLowerCase().replace(' ', '_');
+            return this.$t(`project_list.status.${key}`);
         }
     }
 };

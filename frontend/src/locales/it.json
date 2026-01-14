@@ -6,5 +6,28 @@
   "auth": {
     "login": "Accedi"
   },
-  "projects": "Progetti"
+  "projects": "Progetti",
+  "project_list": {
+    "keyword_search": "Ricerca parola chiave",
+    "no_projects_found": "Nessun progetto trovato.",
+    "loading": "Caricamento dati progetti. Attendere prego.",
+    "headers": {
+      "code": "ID Progetto",
+      "name": "Nome",
+      "category": "URL GitHub repo",
+      "status": "Stato",
+      "verified": "Verificato"
+    },
+    "placeholders": {
+      "search_by_id": "Cerca per ID",
+      "search_by_name": "Cerca per nome",
+      "select_one": "Seleziona uno"
+    },
+    "status": {
+      "planned": "PIANIFICATO",
+      "in_progress": "IN CORSO",
+      "completed": "COMPLETATO",
+      "maintenance": "MANUTENZIONE"
+    }
+  }
 }
