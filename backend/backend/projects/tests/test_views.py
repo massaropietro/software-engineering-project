@@ -2,9 +2,9 @@ import pytest
 from backend.projects.models import Project
 from backend.projects.tests.factories import ProjectFactory
 
+
 @pytest.mark.django_db
 class TestProjectViewSet:
-
     def test_list_projects(self, client):
         Project.objects.all().delete()
         ProjectFactory.create_batch(3)
@@ -38,10 +38,10 @@ class TestProjectViewSet:
         data = {
             "name": "New Name",
             "repo_url": "http://new.com",
-            # We must provide all required fields in PUT or just ensure model validation passes.
-            # Since zip_file is optional/nullable, providing repo_url is enough.
         }
-        response = client.put(f"/api/projects/{project.pk}/", data, content_type="application/json")
+        response = client.put(
+            f"/api/projects/{project.pk}/", data, content_type="application/json"
+        )
         assert response.status_code == 200
         project.refresh_from_db()
         assert project.name == "New Name"
@@ -50,9 +50,10 @@ class TestProjectViewSet:
     def test_partial_update_project(self, client):
         project = ProjectFactory(name="Old Name", repo_url="http://old.com")
         data = {"name": "Patched Name"}
-        response = client.patch(f"/api/projects/{project.pk}/", data, content_type="application/json")
+        response = client.patch(
+            f"/api/projects/{project.pk}/", data, content_type="application/json"
+        )
         assert response.status_code == 200
-        project.refresh_from_db()
         assert project.name == "Patched Name"
         assert project.repo_url == "http://old.com"
 
@@ -61,5 +62,3 @@ class TestProjectViewSet:
         response = client.delete(f"/api/projects/{project.pk}/")
         assert response.status_code == 204
         assert not Project.objects.filter(pk=project.pk).exists()
-
-

@@ -2,9 +2,9 @@ import pytest
 from django.core.exceptions import ValidationError
 from backend.projects.tests.factories import ProjectFactory
 
+
 @pytest.mark.django_db
 class TestProjectModel:
-
     def test_create_valid_project_with_url(self):
         project = ProjectFactory(repo_url="http://example.com", zip_file=None)
         project.full_clean()
@@ -22,7 +22,9 @@ class TestProjectModel:
         with pytest.raises(ValidationError) as exc:
             project.full_clean()
 
-        assert "You must provide either a zip file or a repository URL." in str(exc.value)
+        assert "You must provide either a zip file or a repository URL." in str(
+            exc.value
+        )
 
     def test_str_representation(self):
         project = ProjectFactory(name="Test Project", repo_url="http://test.com")

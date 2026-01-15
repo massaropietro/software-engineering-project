@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 class BaseModelSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if self.instance:
@@ -27,4 +28,3 @@ class BaseModelSerializer(serializers.ModelSerializer):
 
         instance.clean()
         return attrs
-

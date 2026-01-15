@@ -1,6 +1,6 @@
-from rest_framework import serializers
 from backend.projects.models import Project
 from backend.core.api.serializers import BaseModelSerializer
+
 
 class ProjectSerializer(BaseModelSerializer):
     class Meta:
@@ -14,4 +14,3 @@ class ProjectSerializer(BaseModelSerializer):
             "created",
         ]
         read_only_fields = ["status", "created"]
-
