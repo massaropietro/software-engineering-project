@@ -144,6 +144,15 @@ SPECTACULAR_SETTINGS["SERVERS"] = [
     {"url": "/", "description": "Server"},
 ]
 
+SPECTACULAR_SETTINGS = {
+    **SPECTACULAR_SETTINGS,  # noqa: F405
+    "SERVERS": [
+        {"url": "/", "description": "Server"},
+    ],
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+}
+
+
 # CORS
 # ------------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
