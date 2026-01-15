@@ -54,6 +54,7 @@ class TestProjectViewSet:
             f"/api/projects/{project.pk}/", data, content_type="application/json"
         )
         assert response.status_code == 200
+        project.refresh_from_db()
         assert project.name == "Patched Name"
         assert project.repo_url == "http://old.com"
 
