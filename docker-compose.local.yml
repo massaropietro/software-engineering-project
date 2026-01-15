@@ -71,8 +71,8 @@ services:
       context: .
       dockerfile: compose/local/frontend/Dockerfile
     volumes:
-      - ./frontend:/app:z
       - /app/node_modules
+      - ./frontend:/app:z
     ports:
       - '5173:5173'
     env_file:

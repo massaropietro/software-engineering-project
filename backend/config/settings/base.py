@@ -78,7 +78,10 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
 ]
 
-LOCAL_APPS = ["backend.core"]
+LOCAL_APPS = [
+    "backend.core",
+    "backend.projects",
+]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -293,6 +296,8 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "backend.core.exceptions.drf_exception_handler",
+    "DEFAULT_PAGINATION_CLASS": "backend.core.paginators.DefaultPagination",
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
