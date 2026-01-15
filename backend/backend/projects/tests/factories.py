@@ -7,7 +7,9 @@ class ProjectFactory(DjangoModelFactory):
     class Meta:
         model = Project
 
-    name = factory.Sequence(lambda n: f"Project {n}")
-    description = factory.Sequence(lambda n: f"Description {n}")
+    name = factory.LazyAttribute(lambda o: f"Project {Project.objects.count() + 1}")
+    description = factory.LazyAttribute(
+        lambda o: f"Description {Project.objects.count() + 1}"
+    )
     zip_file = None
     repo_url = factory.Faker("url")

@@ -85,3 +85,8 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [  # noqa: F405
     *REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"],  # noqa: F405
     "rest_framework.renderers.BrowsableAPIRenderer",
 ]
+
+SPECTACULAR_SETTINGS = {
+    **SPECTACULAR_SETTINGS,  # noqa: F405
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+}
