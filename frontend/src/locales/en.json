@@ -29,5 +29,22 @@
       "completed": "COMPLETED",
       "maintenance": "MAINTENANCE"
     }
+  },
+  "project_form": {
+    "title": "New Project",
+    "name": "Project Name",
+    "description": "Project Description",
+    "repo_url": "GitHub Repo URL",
+    "zip_file": "Upload ZIP file",
+    "submit": "Submit Project",
+    "drag_and_drop": "Drag and drop your project here!",
+    "success": "Project submitted successfully.",
+    "errors": {
+      "required_name": "The name field is required.",
+      "required_desc": "The description field is required.",
+      "url_invalid": "Please enter a valid URL.",
+      "file_required": "A ZIP file is required.",
+      "repo_or_zip_required" : "Either a GitHub repository URL or a ZIP file must be provided."
+    }
   }
 }

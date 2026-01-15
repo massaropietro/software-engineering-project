@@ -99,7 +99,6 @@
         </div>
       </div>
       <div class="p-8 flex flex-col flex-auto">
-
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -112,7 +111,7 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLayout } from '@/composables/layout'
@@ -122,10 +121,12 @@ import { navigation } from '@/layout/navigation'
 import Breadcrumb from 'primevue/breadcrumb'
 import itFlag from '@/assets/it.svg'
 import usFlag from '@/assets/us.svg'
+import {getBreadcrumbs} from "@/utils/utils.js";
 
 const { toggleDarkMode, isDark } = useLayout()
-const route = useRoute()
 const { locale } = useI18n()
+const route = useRoute()
+const router = useRouter() // Necessario per resolve()
 
 const appConfigurator = ref(null)
 
@@ -136,15 +137,12 @@ const home = ref({
 });
 
 const items = computed(() => {
-    // Genera gli items basandosi sull'array matched delle rotte
-    // Filtra la root '/' e usa il nome della rotta o il meta title come etichetta
-    return route.matched
-        .filter(r => r.path !== '/' && r.name && r.meta.breadcrumb !== false)
-        .map(r => ({
-            label: r.meta.title || r.name,
-            route: r.path
-        }))
+    return getBreadcrumbs(route.path, router);
 });
+
+const currentFlag = computed(() => {
+  return locale.value === 'it' ? itFlag : usFlag
+})
 
 function toggleConfigurator(event) {
   appConfigurator.value.toggle(event)
@@ -153,10 +151,6 @@ function toggleConfigurator(event) {
 function toggleLanguage() {
   locale.value = locale.value === 'it' ? 'en' : 'it'
 }
-
-const currentFlag = computed(() => {
-  return locale.value === 'it' ? itFlag : usFlag
-})
 </script>
 
 <style scoped>

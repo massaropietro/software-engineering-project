@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProjectsList from '@/views/projects/ProjectsList.vue'
 import ExampleView from '@/views/ExampleView.vue'
-import {routerPaths} from "@/constants/constants.js";
+import ProjectForm from "@/views/projects/ProjectForm.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,14 +12,28 @@ const router = createRouter({
       component: AppLayout,
       children: [
         {
-          path: routerPaths.home.path,
-          name: routerPaths.home.name,
+          path: 'projects',
+          name: 'projects-list',
           component: ProjectsList,
+          meta: {
+            title: "Projects"
+          },
+        },
+        {
+            path: 'projects/add',
+            name: 'project-add',
+            component: ProjectForm,
+            meta: {
+                title: 'New Project'
+            }
         },
         {
           path: 'example',
           name: 'example',
           component: ExampleView,
+          meta: {
+            title: "Example"
+          }
         },
       ],
     },

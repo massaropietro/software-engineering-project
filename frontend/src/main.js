@@ -10,7 +10,7 @@ import 'primeicons/primeicons.css'
 
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
-
+import ToastService from 'primevue/toastservice';
 const app = createApp(App)
 
 app.use(createPinia())
@@ -32,6 +32,7 @@ import Badge from 'primevue/badge'
 
 app.component('Button', Button)
 app.component('Badge', Badge)
+app.use(ToastService);
 
 // Directives
 import StyleClass from 'primevue/styleclass';
