@@ -1,6 +1,6 @@
 export const routerPaths = {
   home : {
-    path: '',
+    path: 'projects',
     name: 'home'
   },
 }

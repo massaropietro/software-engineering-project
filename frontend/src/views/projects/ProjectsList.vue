@@ -118,8 +118,6 @@ export default {
         };
     },
     created() {
-        // Simulazione caricamento dati
-        setTimeout(() => {
             this.products = [
                 { code: '1001', name: 'Dashboard Analytics', category: 'https://github.com/user/dashboard-analytics', status: 'COMPLETED', verified: true },
                 { code: '1002', name: 'E-commerce API', category: 'https://github.com/user/ecommerce-api', status: 'IN PROGRESS', verified: true },
@@ -128,7 +126,6 @@ export default {
                 { code: '1005', name: 'Authentication Service', category: 'https://github.com/user/auth-service', status: 'COMPLETED', verified: true }
             ];
             this.loading = false;
-        }, 500);
     },
     methods: {
         getSeverity(status) {
@@ -146,7 +143,6 @@ export default {
             }
         },
         getTranslatedStatus(status) {
-            // Converte lo status (es. "IN PROGRESS") nella chiave del json (es. "in_progress")
             const key = status.toLowerCase().replace(' ', '_');
             return this.$t(`project_list.status.${key}`);
         }
