@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
+import Tree from 'primevue/tree';
+import Panel from 'primevue/panel';
+
 import App from './App.vue'
 import router from './router'
 import i18n from '@/plugins/i18n.js'
@@ -32,6 +35,8 @@ import Badge from 'primevue/badge'
 
 app.component('Button', Button)
 app.component('Badge', Badge)
+app.component('Tree', Tree)
+app.component('Panel', Panel)
 
 // Directives
 import StyleClass from 'primevue/styleclass';

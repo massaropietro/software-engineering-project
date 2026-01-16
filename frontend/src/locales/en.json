@@ -6,5 +6,12 @@
   "auth": {
     "login": "Sign In"
   },
-  "projects": "Projects"
+  "projects": "Projects",
+
+  "project": {
+    "details_title": "Project Details",
+    "file_explorer": "File Explorer",
+    "overview": "Overview",
+    "health_placeholder": "Project health data will be displayed here."
+  }
 }

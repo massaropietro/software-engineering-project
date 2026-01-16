@@ -6,5 +6,12 @@
   "auth": {
     "login": "Accedi"
   },
-  "projects": "Progetti"
+  "projects": "Progetti",
+
+  "project": {
+    "details_title": "Dettagli Progetto",
+    "file_explorer": "Esplora File",
+    "overview": "Panoramica",
+    "health_placeholder": "Qui verranno mostrati i dati sulla salute del progetto."
+  }
 }
