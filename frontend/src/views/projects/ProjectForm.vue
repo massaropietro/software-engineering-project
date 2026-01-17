@@ -2,9 +2,9 @@
 <template>
   <div class="card flex flex-col justify-center items-center p-8">
     <h2 class="text-2xl font-semibold mb-6">{{ $t('project_form.title') }}</h2>
-    <Toast />
 
-    <PrimeForm ref="form" :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-6 w-full max-w-lg">
+    <!-- Nota: 'ref' deve corrispondere al nome della variabile nello script -->
+    <PrimeForm ref="formRef" :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-6 w-full max-w-lg">
 
       <!-- PROJECT NAME -->
       <FormField v-slot="$field" name="name" initialValue="" class="flex flex-col gap-2">
@@ -27,7 +27,8 @@
         <label for="description" class="font-medium text-surface-900 dark:text-surface-0">
           {{ $t('project_form.description') }}
         </label>
-        <PrimeTextarea
+        <!-- Textarea è globale ora -->
+        <Textarea
           id="description"
           rows="4"
           :placeholder="$t('project_form.description')"
@@ -62,13 +63,8 @@
           {{ $t('project_form.zip_file') }}
         </label>
 
-        <!--
-          FileUpload:
-          - class="w-full": estende il background/contenitore a tutta la riga.
-          - pt.chooseButton: forza il bottone a !w-auto per evitare l'effetto "pulsantone".
-        -->
         <FileUpload
-          ref="fileUpload"
+          ref="fileUploadRef"
           mode="advanced"
           accept=".zip"
           :maxFileSize="10000000"
@@ -95,7 +91,8 @@
                         <span class="font-medium truncate">{{ files[0].name }}</span>
                         <span class="text-xs text-surface-500">{{ (files[0].size / 1024).toFixed(0) }} KB</span>
                     </div>
-                    <PrimeButton
+                    <!-- Button è globale ora -->
+                    <Button
                         icon="pi pi-times"
                         text
                         rounded
@@ -115,61 +112,67 @@
         <Message v-if="$field.invalid" severity="error" size="small" variant="simple">{{ $field.error?.message }}</Message>
       </FormField>
 
-      <PrimeButton type="submit" :label="$t('project_form.submit')" class="mt-2" />
+      <Message v-if="backendError" severity="error">{{ backendError }}</Message>
+
+      <Button type="submit" :label="$t('project_form.submit')" class="mt-2" :loading="loading" />
     </PrimeForm>
   </div>
 </template>
 
-<script>
-import Toast from 'primevue/toast';
-import InputText from 'primevue/inputtext';
-import Textarea from 'primevue/textarea';
-import Button from 'primevue/button';
-import FileUpload from 'primevue/fileupload';
-import Message from 'primevue/message';
-import { Form, FormField } from '@primevue/forms';
-import { yupResolver } from '@primevue/forms/resolvers/yup';
-import { projectSchema } from '@/validators/validators.js';
+<script setup>
+import { ref, computed } from 'vue';
+import { useToast } from 'primevue/usetoast';
+import { useI18n } from 'vue-i18n';
+import { zodResolver } from '@primevue/forms/resolvers/zod';
+import { projectSchema } from '@/constants/formSchemes/projectScheme.js';
+import { addProjects } from '@/backend/backend';
 
-export default {
-  components: {
-    Toast,
-    InputText,
-    PrimeTextarea: Textarea,
-    PrimeButton: Button,
-    PrimeForm: Form,
-    FormField,
-    FileUpload,
-    Message
-  },
-  data() {
-    return {
-      currentRepoUrl: '',
-      hasZipFile: false,
-      resolver: yupResolver(projectSchema)
-    };
-  },
-  computed: {
-    isRepoUrlFilled() {
-      return (this.currentRepoUrl || '').trim().length > 0;
-    }
-  },
-  methods: {
-    onZipSelect(event) {
-      const file = event.files && event.files.length > 0 ? event.files[0] : null;
-      this.$refs.form.setFieldValue('zip_file', file);
-      this.hasZipFile = !!file;
-    },
-    onZipClear() {
-      this.$refs.form.setFieldValue('zip_file', null);
-      this.hasZipFile = false;
-    },
-    onFormSubmit({ valid, values }) {
-      if (valid) {
-        console.log('Form Values:', values);
-        this.$toast.add({ severity: 'success', summary: this.$t('project_form.success'), life: 3000 });
-      }
-    }
+const { t } = useI18n();
+const toast = useToast();
+
+const formRef = ref(null);
+const fileUploadRef = ref(null);
+
+const currentRepoUrl = ref('');
+const hasZipFile = ref(false);
+const loading = ref(false);
+const backendError = ref(null);
+
+const resolver = zodResolver(projectSchema);
+
+const isRepoUrlFilled = computed(() => {
+  return (currentRepoUrl.value || '').trim().length > 0;
+});
+
+const onZipSelect = (event) => {
+  const file = event.files && event.files.length > 0 ? event.files[0] : null;
+
+  // Accediamo al metodo setFieldValue tramite .value
+  if (formRef.value) {
+    formRef.value.setFieldValue('zip_file', file);
+  }
+
+  hasZipFile.value = !!file;
+};
+
+const onZipClear = () => {
+  if (formRef.value) {
+    formRef.value.setFieldValue('zip_file', null);
+  }
+  hasZipFile.value = false;
+};
+
+const onFormSubmit = ({ valid, values }) => {
+  if (valid) {
+    backendError.value = null;
+
+    addProjects(values, {
+        loading: (state) => (loading.value = state),
+        setBackendError: (msg) => (backendError.value = msg),
+        onSuccess: () => {
+            toast.add({ severity: 'success', summary: t('project_form.success'), life: 3000 });
+        }
+    });
   }
 };
 </script>

@@ -1,32 +1,29 @@
+<!-- frontend/src/views/projects/ProjectsList.vue -->
 <template>
-<div class="card">
+    <div class="card">
         <div class="font-semibold text-xl mb-4">{{ $t('projects') }}</div>
-        <DataTable v-model:filters="filters" :value="products" paginator :rows="10" dataKey="code" filterDisplay="row" :loading="loading"
-                   :globalFilterFields="['name', 'code', 'status']">
-
-            <template #header>
-                <div class="flex justify-end">
-                    <IconField>
-                        <InputIcon>
-                            <i class="pi pi-search" />
-                        </InputIcon>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('project_list.keyword_search')" />
-                    </IconField>
+        <DataTable
+            v-model:filters="filters"
+            :value="projects"
+            paginator
+            :rows="10"
+            dataKey="repo_url"
+            filterDisplay="row"
+            :loading="loading"
+            :globalFilterFields="['name', 'repo_url', 'status', 'created']"
+        >
+            <template #empty>
+                <div v-if="backendError" class="text-center text-red-500">
+                    <i class="pi pi-exclamation-circle mr-2"></i>
+                    <span class="font-bold">{{ $t('project_list.error_loading_projects') }}: </span>
+                    <span> {{ backendError }}</span>
+                </div>
+                <div v-else>
+                    {{ $t('project_list.no_projects_found') }}
                 </div>
             </template>
 
-            <template #empty> {{ $t('project_list.no_projects_found') }} </template>
             <template #loading> {{ $t('project_list.loading') }} </template>
-
-            <!-- Colonna Code -->
-            <Column field="code" :header="$t('project_list.headers.code')" style="min-width: 12rem">
-                <template #body="{ data }">
-                    {{ data.code }}
-                </template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <InputText v-model="filterModel.value" type="text" @input="filterCallback()" :placeholder="$t('project_list.placeholders.search_by_id')" />
-                </template>
-            </Column>
 
             <!-- Colonna Name -->
             <Column field="name" :header="$t('project_list.headers.name')" style="min-width: 12rem">
@@ -38,10 +35,24 @@
                 </template>
             </Column>
 
-            <!-- Colonna URL -->
-            <Column field="category" :header="$t('project_list.headers.category')" style="min-width: 12rem">
+            <!-- Colonna Repo URL -->
+            <Column field="repo_url" :header="$t('project_list.headers.repository')" style="min-width: 12rem">
                  <template #body="{ data }">
-                    <a :href="data.category" target="_blank" class="text-blue-500 hover:underline">{{ data.category }}</a>
+                    <a v-if="data.repo_url" :href="data.repo_url" target="_blank" class="text-blue-500 hover:underline">{{ data.repo_url }}</a>
+                    <span v-else>-</span>
+                </template>
+                <template #filter="{ filterModel, filterCallback }">
+                    <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search URL" />
+                </template>
+            </Column>
+
+            <!-- Colonna Created -->
+            <Column field="created" :header="$t('project_list.headers.created')" style="min-width: 12rem">
+                <template #body="{ data }">
+                    {{ formatDate(data.created) }}
+                </template>
+                <template #filter="{ filterModel, filterCallback }">
+                    <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search Date" />
                 </template>
             </Column>
 
@@ -51,6 +62,7 @@
                     <Tag :value="getTranslatedStatus(data.status)" :severity="getSeverity(data.status)" />
                 </template>
                 <template #filter="{ filterModel, filterCallback }">
+                    <!-- Nome aggiornato: PrimeSelect -> Select (come in main.js) -->
                     <Select v-model="filterModel.value" @change="filterCallback()" :options="statuses" :placeholder="$t('project_list.placeholders.select_one')" showClear>
                         <template #option="slotProps">
                             <Tag :value="getTranslatedStatus(slotProps.option)" :severity="getSeverity(slotProps.option)" />
@@ -59,93 +71,49 @@
                 </template>
             </Column>
 
-            <!-- Colonna Verified -->
-            <Column field="verified" :header="$t('project_list.headers.verified')" dataType="boolean" style="min-width: 6rem">
-                <template #body="{ data }">
-                    <i class="pi" :class="{ 'pi-check-circle text-green-500': data.verified, 'pi-times-circle text-red-400': !data.verified }"></i>
-                </template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <Checkbox v-model="filterModel.value" :indeterminate="filterModel.value === null" binary @change="filterCallback()" />
-                </template>
-            </Column>
-
         </DataTable>
     </div>
-  </template>
+</template>
 
-<script>
-import { FilterMatchMode } from '@primevue/core/api';
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { PROJECT_STATUSES, PROJECT_FILTERS } from "@/constants/constants.js";
+import { getProjects } from '@/backend/backend';
+import { formatDate, getSeverity } from "@/utils/utils";
 
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import InputText from 'primevue/inputtext';
-import Breadcrumb from 'primevue/breadcrumb';
-import Tag from 'primevue/tag';
-import Select from 'primevue/select';
-import Checkbox from 'primevue/checkbox';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
+const { t } = useI18n();
 
-export default {
-    components: {
-        Breadcrumb,
-        DataTable,
-        Column,
-        InputText,
-        Tag,
-        Select,
-        Checkbox,
-        IconField,
-        InputIcon
-    },
-    data() {
-        return {
-            products: null,
-            loading: true,
-            filters: {
-                global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                code: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-                name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                status: { value: null, matchMode: FilterMatchMode.EQUALS },
-                verified: { value: null, matchMode: FilterMatchMode.EQUALS }
-            },
-            statuses: ['PLANNED', 'IN PROGRESS', 'COMPLETED', 'MAINTENANCE'],
-            home: { icon: 'pi pi-home', to: '/' },
-            items: [
-                { label: 'Projects' },
-                { label: 'List' }
-            ]
-        };
-    },
-    created() {
-            this.products = [
-                { code: '1001', name: 'Dashboard Analytics', category: 'https://github.com/user/dashboard-analytics', status: 'COMPLETED', verified: true },
-                { code: '1002', name: 'E-commerce API', category: 'https://github.com/user/ecommerce-api', status: 'IN PROGRESS', verified: true },
-                { code: '1003', name: 'Mobile App', category: 'https://github.com/user/mobile-app-v2', status: 'PLANNED', verified: false },
-                { code: '1004', name: 'Landing Page', category: 'https://github.com/user/landing-page-promo', status: 'MAINTENANCE', verified: true },
-                { code: '1005', name: 'Authentication Service', category: 'https://github.com/user/auth-service', status: 'COMPLETED', verified: true }
-            ];
-            this.loading = false;
-    },
-    methods: {
-        getSeverity(status) {
-            switch (status) {
-                case 'MAINTENANCE':
-                    return 'danger';
-                case 'COMPLETED':
-                    return 'success';
-                case 'IN PROGRESS':
-                    return 'info';
-                case 'PLANNED':
-                    return 'warn';
-                default:
-                    return null;
+const projects = ref([]);
+const loading = ref(true);
+const backendError = ref(null);
+const filters = ref(PROJECT_FILTERS);
+const statuses = ref(PROJECT_STATUSES);
+
+// Metodi
+const loadProjects = () => {
+    getProjects({
+        loading: (state) => loading.value = state,
+        setBackendError: (msg) => backendError.value = msg,
+        onSuccess: (data) => {
+            if (data && data.results && Array.isArray(data.results)) {
+                projects.value = data.results;
             }
         },
-        getTranslatedStatus(status) {
-            const key = status.toLowerCase().replace(' ', '_');
-            return this.$t(`project_list.status.${key}`);
-        }
-    }
+    });
 };
+
+const getTranslatedStatus = (status) => {
+    if (!status) return '';
+    const key = status.toLowerCase().replace(' ', '_');
+    const translationKey = `project_list.status.${key}`;
+    const translated = t(translationKey);
+    return translated !== translationKey ? translated : status;
+};
+
+onMounted(() => {
+    loadProjects();
+});
+
+
 </script>

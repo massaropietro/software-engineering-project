@@ -9,14 +9,16 @@
   "projects": "Progetti",
   "project_list": {
     "keyword_search": "Ricerca parola chiave",
-    "no_projects_found": "Nessun progetto trovato.",
-    "loading": "Caricamento dati progetti. Attendere prego.",
+    "no_projects_found": "Nessun progetto trovato",
+    "error_loading_projects" : "Errore nel caricamento dei progetti",
+    "loading": "Caricamento dati progetti. Attendere prego",
     "headers": {
       "code": "ID Progetto",
       "name": "Nome",
-      "category": "URL GitHub repo",
+      "repository": "URL GitHub repo",
       "status": "Stato",
-      "verified": "Verificato"
+      "verified": "Verificato",
+      "created": "Creato il"
     },
     "placeholders": {
       "search_by_id": "Cerca per ID",
@@ -24,10 +26,10 @@
       "select_one": "Seleziona uno"
     },
     "status": {
-      "planned": "PIANIFICATO",
-      "in_progress": "IN CORSO",
+      "uploaded": "CARICATO",
+      "processing": "IN CORSO",
       "completed": "COMPLETATO",
-      "maintenance": "MANUTENZIONE"
+      "error": "ERRORE"
     }
   },
   "project_form": {

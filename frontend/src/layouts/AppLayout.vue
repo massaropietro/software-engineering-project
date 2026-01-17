@@ -149,7 +149,9 @@ function toggleConfigurator(event) {
 }
 
 function toggleLanguage() {
-  locale.value = locale.value === 'it' ? 'en' : 'it'
+  const newLocale = locale.value === 'it' ? 'en' : 'it';
+  locale.value = newLocale;
+  localStorage.setItem('locale', newLocale);
 }
 </script>
 
