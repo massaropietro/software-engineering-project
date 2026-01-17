@@ -6,6 +6,7 @@ class ProjectSerializer(BaseModelSerializer):
     class Meta:
         model = Project
         fields = [
+            "id",
             "name",
             "description",
             "zip_file",
