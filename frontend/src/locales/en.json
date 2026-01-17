@@ -1,10 +1,6 @@
 {
+  "projects": "Projects",
   "nav": {
-    "home": "Home",
-    "contact": "Contact Us"
-  },
-  "auth": {
-    "login": "Sign In"
-  },
-  "projects": "Projects"
+    "projects": "Projects"
+  }
 }

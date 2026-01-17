@@ -3,13 +3,13 @@ import en from '@/locales/en.json'
 import it from '@/locales/it.json'
 
 const i18n = createI18n({
-  legacy: false,      // Necessario per Vue 3
-  locale: 'it',       // Lingua predefinita
-  fallbackLocale: 'en', // Lingua di riserva
+  legacy: false,
+  locale: 'it',
+  fallbackLocale: 'en',
   messages: {
     en,
-    it
-  }
+    it,
+  },
 })
 
 export default i18n

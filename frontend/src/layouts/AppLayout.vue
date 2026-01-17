@@ -54,14 +54,15 @@
         <div class="flex items-center gap-5">
           <Button
             @click="toggleLanguage"
-            class="px-2 py-1 flex items-center gap-2"
+            class="px-2 py-1 flex items-center"
             outlined
             rounded
+            text
           >
-            <img 
-              :src="currentFlag" 
-              alt="Language Flag" 
-              class="w-4 h-auto border border-surface-300 dark:border-surface-600 rounded-sm" 
+            <img
+              :src="currentFlag"
+              alt="Language Flag"
+              class="w-4 h-auto border border-surface-300 dark:border-surface-600 rounded-sm"
             />
             <span class="font-medium text-surface-600 dark:text-surface-200 uppercase text-sm">
               {{ locale }}
