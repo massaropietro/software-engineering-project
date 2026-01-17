@@ -1,11 +1,11 @@
 export const navigation = [
   {
-    label: 'Progetti',
+    label: 'nav.projects',
     icon: 'pi pi-th-large',
     route: 'home',
   },
   {
-    label: 'Esempio',
+    label: 'nav.example',
     icon: 'pi pi-file',
     route: 'example',
   },

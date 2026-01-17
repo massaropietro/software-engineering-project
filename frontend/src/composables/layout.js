@@ -1,5 +1,5 @@
 import { ref, computed, watch } from 'vue'
-import { updatePreset, definePreset, palette } from '@primeuix/themes'
+import { updatePreset, definePreset } from '@primeuix/themes'
 import Aura from '@primeuix/themes/aura'
 
 const CONFIG_KEY = 'layoutConfig'
