@@ -41,8 +41,8 @@ lint:
     @docker compose exec django sh -c "ruff check . && ruff format --check ."
 
 # Esegui i test e genera subito il report HTML
-test:
-    @docker compose run --rm django sh -c "coverage run -m pytest && coverage html"
+test *args:
+    @docker compose run --rm django sh -c "coverage run -m pytest {{ args }} && coverage html"
 
 # makemessages: Genera o aggiorna i file di traduzione (.po)
 makemessages:

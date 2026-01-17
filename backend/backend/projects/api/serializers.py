@@ -12,5 +12,6 @@ class ProjectSerializer(BaseModelSerializer):
             "repo_url",
             "status",
             "created",
+            "file_structure",
         ]
-        read_only_fields = ["status", "created"]
+        read_only_fields = ["status", "created", "file_structure"]
