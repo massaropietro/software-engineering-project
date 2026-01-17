@@ -1,10 +1,6 @@
 {
+  "projects": "Progetti",
   "nav": {
-    "home": "Pagina Iniziale",
-    "contact": "Contattaci"
-  },
-  "auth": {
-    "login": "Accedi"
-  },
-  "projects": "Progetti"
+    "projects": "Progetti"
+  }
 }

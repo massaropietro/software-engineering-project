@@ -13,9 +13,10 @@
       }"
       class="flex items-center cursor-pointer p-3 gap-4 rounded-lg text-surface-0 hover:bg-primary-emphasis"
     >
-      <span class="font-semibold text-base leading-tight text-primary-contrast">{{
-        item.label
-      }}</span>
+      <span class="font-semibold text-base leading-tight text-primary-contrast">
+        {{ $t(item.label) }}
+        }}</span
+      >
       <i class="pi pi-angle-down text-base! leading-none! text-primary-contrast ml-auto" />
     </div>
 
@@ -32,7 +33,7 @@
       class="flex items-center cursor-pointer p-3 gap-2 rounded-lg text-primary-contrast hover:bg-primary-emphasis select-none"
     >
       <i :class="[item.icon, 'text-base! leading-none! text-primary-contrast']" />
-      <span class="font-medium text-base leading-tight">{{ item.label }}</span>
+      <span class="font-medium text-base leading-tight">{{ $t(item.label) }}</span>
       <i class="pi pi-angle-down text-base! leading-none! text-primary-contrast ml-auto" />
     </a>
 
@@ -44,7 +45,7 @@
       class="flex items-center cursor-pointer p-3 gap-2 rounded-lg text-primary-contrast hover:bg-primary-emphasis select-none transition-colors"
     >
       <i :class="[item.icon, 'text-base! leading-none! text-primary-contrast']" />
-      <span class="font-medium text-base leading-tight">{{ item.label }}</span>
+      <span class="font-medium text-base leading-tight">{{ $t(item.label) }}</span>
 
       <Badge
         v-if="item.badge"
@@ -60,7 +61,7 @@
       class="flex items-center cursor-pointer p-3 gap-2 rounded-lg text-primary-contrast hover:bg-primary-emphasis select-none"
     >
       <i :class="[item.icon, 'text-base! leading-none! text-primary-contrast']" />
-      <span class="font-medium text-base leading-tight">{{ item.label }}</span>
+      <span class="font-medium text-base leading-tight">{{ $t(item.label) }}</span>
       <Badge
         v-if="item.badge"
         :value="item.badge.value"
