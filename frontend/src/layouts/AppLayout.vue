@@ -117,6 +117,8 @@ function toggleConfigurator(event) {
 
 function toggleLanguage() {
   locale.value = locale.value === 'it' ? 'en' : 'it'
+
+  localStorage.setItem('user-locale', locale.value);
 }
 
 const currentFlag = computed(() => {
