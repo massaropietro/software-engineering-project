@@ -3,6 +3,8 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import ProjectsList from '@/views/projects/ProjectsList.vue'
 import ExampleView from '@/views/ExampleView.vue'
 import ProjectForm from "@/views/projects/ProjectForm.vue";
+import ProjectDetails from '@/views/projects/ProjectDetails.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +30,17 @@ const router = createRouter({
             }
         },
         {
+          path: "projects",
+          children: [
+            {
+              path: ':projectId',
+              name: 'project-details',
+              component: ProjectDetails,
+              props: true
+            }
+          ]
+        },
+        {
           path: 'example',
           name: 'example',
           component: ExampleView,
@@ -36,6 +49,11 @@ const router = createRouter({
           }
         },
       ],
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView
     },
   ],
 })

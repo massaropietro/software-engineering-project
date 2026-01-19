@@ -13,12 +13,19 @@ class Project(BaseModel, StatusModel):
     Validator = ProjectValidator
 
     STATUS = Choices(
-        "uploaded", "processing_classes", "analysing", "failed", "completed"
+        "uploaded",
+        "building_filesystem",
+        "filesystem_created",
+        "processing_classes",
+        "analysing",
+        "failed",
+        "completed",
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     zip_file = models.FileField(upload_to="projects/zips/", blank=True, null=True)
     repo_url = models.URLField(blank=True)
+    file_structure = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ["-created"]

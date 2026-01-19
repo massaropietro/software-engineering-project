@@ -1,12 +1,12 @@
 export const navigation = [
   {
-    label: 'Progetti',
+    label: 'nav.projects',
     icon: 'pi pi-th-large',
     // Modificato da 'home' a 'projects-list' per corrispondere al name nel Router
     route: 'projects-list',
   },
   {
-    label: 'Esempio',
+    label: 'nav.example',
     icon: 'pi pi-file',
     route: 'example',
   },

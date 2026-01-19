@@ -1,12 +1,13 @@
 {
+  "projects": "Progetti",
   "nav": {
     "home": "Pagina Iniziale",
-    "contact": "Contattaci"
+    "contact": "Contattaci",
+    "projects": "Progetti"
   },
   "auth": {
     "login": "Accedi"
   },
-  "projects": "Progetti",
   "project_list": {
     "keyword_search": "Ricerca parola chiave",
     "no_projects_found": "Nessun progetto trovato",

@@ -1,12 +1,13 @@
 {
+  "projects": "Projects",
   "nav": {
     "home": "Home",
-    "contact": "Contact Us"
+    "contact": "Contact Us",
+    "projects": "Projects"
   },
   "auth": {
     "login": "Sign In"
   },
-  "projects": "Projects",
   "project_list": {
     "keyword_search": "Keyword Search",
     "no_projects_found": "No projects found",

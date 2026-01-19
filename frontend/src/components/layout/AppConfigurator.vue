@@ -48,7 +48,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useLayout } from '@/composables/layout'
+import { useLayout } from '@/composables/layout.js'
 import Popover from 'primevue/popover'
 import SelectButton from 'primevue/selectbutton'
 

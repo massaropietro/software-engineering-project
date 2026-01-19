@@ -69,9 +69,10 @@
         <div class="flex items-center gap-5">
           <Button
             @click="toggleLanguage"
-            class="px-2 py-1 flex items-center gap-2"
+            class="px-2 py-1 flex items-center"
             outlined
             rounded
+            text
           >
             <img
               :src="currentFlag"
@@ -115,9 +116,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLayout } from '@/composables/layout'
-import AppConfigurator from '@/components/AppConfigurator.vue'
-import AppMenu from '@/components/AppMenu.vue'
-import { navigation } from '@/layout/navigation'
+import AppConfigurator from '@/components/layout/AppConfigurator.vue'
+import AppMenu from '@/components/layout/AppMenu.vue'
+import { navigation } from '@/constants/navigation.js'
 import Breadcrumb from 'primevue/breadcrumb'
 import itFlag from '@/assets/it.svg'
 import usFlag from '@/assets/us.svg'
