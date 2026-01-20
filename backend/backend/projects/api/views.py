@@ -5,9 +5,6 @@ from backend.projects.api.serializers import ProjectSerializer, ProjectFileSeria
 from backend.projects.models import Project
 
 
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from backend.projects.models import ProjectFile
 
 

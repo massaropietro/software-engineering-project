@@ -64,12 +64,6 @@ class TestProjectViewSet:
         assert response.status_code == 204
         assert not Project.objects.filter(pk=project.pk).exists()
 
-    def test_delete_project(self, client):
-        project = ProjectFactory()
-        response = client.delete(f"/api/projects/{project.pk}/")
-        assert response.status_code == 204
-        assert not Project.objects.filter(pk=project.pk).exists()
-
 
 @pytest.mark.django_db
 class TestProjectFileViewSet:
