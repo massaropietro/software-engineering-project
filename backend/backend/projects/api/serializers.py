@@ -1,4 +1,4 @@
-from backend.projects.models import Project
+from backend.projects.models import Project, ProjectFile
 from backend.core.api.serializers import BaseModelSerializer
 
 
@@ -16,3 +16,9 @@ class ProjectSerializer(BaseModelSerializer):
             "file_structure",
         ]
         read_only_fields = ["status", "created", "file_structure"]
+
+
+class ProjectFileSerializer(BaseModelSerializer):
+    class Meta:
+        model = ProjectFile
+        fields = "__all__"

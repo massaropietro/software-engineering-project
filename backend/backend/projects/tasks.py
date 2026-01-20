@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task
 def build_filesystem_task(project_id):
     try:
@@ -26,9 +27,7 @@ def build_filesystem_task(project_id):
         logger.error(f"Project {project_id} not found")
     except Exception as e:
         logger.exception(f"Error building filesystem for project {project_id}: {e}")
-        try:
-            project = Project.objects.get(id=project_id)
-            project.status = Project.STATUS.failed
-            project.save()
-        except:
-            pass
+
+        project = Project.objects.get(id=project_id)
+        project.status = Project.STATUS.failed
+        project.save()
