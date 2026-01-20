@@ -5,20 +5,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0001_initial'),
+        ("projects", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='file_structure',
+            model_name="project",
+            name="file_structure",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='status',
-            field=model_utils.fields.StatusField(choices=[('uploaded', 'uploaded'), ('processing_classes', 'processing_classes'), ('analysing', 'analysing'), ('failed', 'failed'), ('completed', 'completed')], default='uploaded', max_length=100, no_check_for_status=True, verbose_name='status'),
+            model_name="project",
+            name="status",
+            field=model_utils.fields.StatusField(
+                choices=[
+                    ("uploaded", "uploaded"),
+                    ("processing_classes", "processing_classes"),
+                    ("analysing", "analysing"),
+                    ("failed", "failed"),
+                    ("completed", "completed"),
+                ],
+                default="uploaded",
+                max_length=100,
+                no_check_for_status=True,
+                verbose_name="status",
+            ),
         ),
     ]

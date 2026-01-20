@@ -1,8 +1,8 @@
 import axios from 'axios';
 import router from '@/router'
 
-// @ts-ignore
 const apiClient = axios.create({
+  // @ts-ignore
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
