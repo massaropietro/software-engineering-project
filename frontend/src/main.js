@@ -42,6 +42,10 @@ import Select from 'primevue/select';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import { Form, FormField } from '@primevue/forms';
+import Dialog from 'primevue/dialog';
+import Card from 'primevue/card';
+import ProjectCreateDialog from '@/views/projects/ProjectCreateDialog.vue';
+import ProjectForm from '@/views/projects/ProjectForm.vue';
 
 // Global Component Registration
 app.component('Message', Message)
@@ -59,7 +63,10 @@ app.component('IconField', IconField)
 app.component('InputIcon', InputIcon)
 app.component('PrimeForm', Form)
 app.component('FormField', FormField)
-
+app.component('Dialog', Dialog)
+app.component('Card', Card)
+app.component('ProjectCreateDialog', ProjectCreateDialog)
+app.component('ProjectForm', ProjectForm)
 
 // Directives
 import StyleClass from 'primevue/styleclass';

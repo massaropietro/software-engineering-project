@@ -9,6 +9,7 @@
     "login": "Sign In"
   },
   "project_list": {
+    "new_project" : "New Project",
     "keyword_search": "Keyword Search",
     "no_projects_found": "No projects found",
     "error_loading_projects" : "Error loading projects",
@@ -28,8 +29,13 @@
     },
     "status": {
       "uploaded": "UPLOADED",
-      "processing": "IN PROGRESS",
+      "building_filesystem": "BUILDING FILESYSTEM",
+      "filesystem_created": "FILESYSTEM CREATED",
+      "processing_classes": "PROCESSING CLASSES",
+      "analysing": "ANALYSING",
       "completed": "COMPLETED",
+      "failed": "FAILED",
+      "processing": "IN PROGRESS",
       "error": "ERROR"
     }
   },

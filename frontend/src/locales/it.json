@@ -9,6 +9,7 @@
     "login": "Accedi"
   },
   "project_list": {
+    "new_project" : "Nuovo Progetto", 
     "keyword_search": "Ricerca parola chiave",
     "no_projects_found": "Nessun progetto trovato",
     "error_loading_projects" : "Errore nel caricamento dei progetti",
@@ -28,8 +29,13 @@
     },
     "status": {
       "uploaded": "CARICATO",
-      "processing": "IN CORSO",
+      "building_filesystem": "CREAZIONE FILESYSTEM",
+      "filesystem_created": "FILESYSTEM CREATO",
+      "processing_classes": "ELABORAZIONE CLASSI",
+      "analysing": "ANALISI IN CORSO",
       "completed": "COMPLETATO",
+      "failed": "FALLITO",
+      "processing": "IN CORSO",
       "error": "ERRORE"
     }
   },

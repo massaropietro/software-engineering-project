@@ -1,7 +1,11 @@
 <!-- frontend/src/views/projects/ProjectsList.vue -->
 <template>
+
     <div class="card">
-        <div class="font-semibold text-xl mb-4">{{ $t('projects') }}</div>
+        <div class="flex justify-between items-center mb-4">
+            <div class="font-semibold text-xl">{{ $t('projects') }}</div>
+            <Button :label="$t('project_list.new_project')" icon="pi pi-plus" @click="showCreateDialog = true" />
+        </div>
         <DataTable
             v-model:filters="filters"
             :value="projects"
@@ -72,35 +76,44 @@
             </Column>
 
         </DataTable>
+
+        <ProjectCreateDialog v-model:visible="showCreateDialog" />
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { PROJECT_STATUSES, PROJECT_FILTERS } from "@/constants/constants.js";
-import { getProjects } from '@/backend/backend';
+import { useApi } from '@/composables/useApi';
+import ProjectService from '@/services/ProjectService';
 import { formatDate, getSeverity } from "@/utils/utils";
 
 const { t } = useI18n();
 
 const projects = ref([]);
-const loading = ref(true);
-const backendError = ref(null);
 const filters = ref(PROJECT_FILTERS);
 const statuses = ref(PROJECT_STATUSES);
+const showCreateDialog = ref(false);
+
+const {
+    data: projectsData,
+    loading,
+    error: backendError,
+    execute: fetchProjects
+} = useApi(ProjectService.getProjects);
 
 // Metodi
-const loadProjects = () => {
-    getProjects({
-        loading: (state) => loading.value = state,
-        setBackendError: (msg) => backendError.value = msg,
-        onSuccess: (data) => {
-            if (data && data.results && Array.isArray(data.results)) {
-                projects.value = data.results;
-            }
-        },
-    });
+const loadProjects = async () => {
+    await fetchProjects();
+    if (projectsData.value) {
+        // Handle pagination structure { results: [] } or direct array
+        if (projectsData.value.results && Array.isArray(projectsData.value.results)) {
+            projects.value = projectsData.value.results;
+        } else if (Array.isArray(projectsData.value)) {
+            projects.value = projectsData.value;
+        }
+    }
 };
 
 const getTranslatedStatus = (status) => {
@@ -114,6 +127,4 @@ const getTranslatedStatus = (status) => {
 onMounted(() => {
     loadProjects();
 });
-
-
 </script>

@@ -32,7 +32,7 @@ export default {
    * @param id Project ID
    */
   getProject(id: string) {
-    return apiClient.get<Project>(`/projects/${id}/`);
+    return apiClient.get<Project>(`/projects/${id}`);
   },
 
   /**

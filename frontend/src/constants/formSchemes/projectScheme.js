@@ -23,12 +23,6 @@ export const projectSchema = z.object({
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: message,
-            path: ['repo_url'],
-        });
-
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: message,
             path: ['zip_file'],
         });
     }

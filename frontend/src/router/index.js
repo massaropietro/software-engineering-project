@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ProjectsList from '@/views/projects/ProjectsList.vue'
 import ExampleView from '@/views/ExampleView.vue'
-import ProjectForm from "@/views/projects/ProjectForm.vue";
+import ProjectCreate from "@/views/projects/ProjectCreate.vue";
 import ProjectDetails from '@/views/projects/ProjectDetails.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
@@ -24,7 +24,7 @@ const router = createRouter({
         {
             path: 'projects/add',
             name: 'project-add',
-            component: ProjectForm,
+            component: ProjectCreate,
             meta: {
                 title: 'New Project'
             }
