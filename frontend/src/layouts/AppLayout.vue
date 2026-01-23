@@ -105,7 +105,7 @@ import AppMenu from '@/components/AppMenu.vue'
 import { navigation } from '@/layout/navigation'
 import itFlag from '@/assets/it.svg'
 import usFlag from '@/assets/us.svg'
-import api from '@/services/api';
+
 
 const { toggleDarkMode, isDark } = useLayout()
 const { locale } = useI18n()
