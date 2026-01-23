@@ -100,9 +100,9 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLayout } from '@/composables/layout'
-import AppConfigurator from '@/components/AppConfigurator.vue'
-import AppMenu from '@/components/AppMenu.vue'
-import { navigation } from '@/layout/navigation'
+import AppConfigurator from '@/components/layout/AppConfigurator.vue'
+import AppMenu from '@/components/layout/AppMenu.vue'
+import { navigation } from '@/constants/navigation.js'
 import itFlag from '@/assets/it.svg'
 import usFlag from '@/assets/us.svg'
 import api from '@/services/api';
@@ -116,18 +116,10 @@ function toggleConfigurator(event) {
   appConfigurator.value.toggle(event)
 }
 
-async function toggleLanguage() {
-  const newLang = locale.value === 'it' ? 'en' : 'it'
+function toggleLanguage() {
+  locale.value = locale.value === 'it' ? 'en' : 'it'
 
-  local.value = newLang;
   localStorage.setItem('user-locale', locale.value);
-
-  try {
-    await api.post('/user/language', { language : newLang });
-    console.log('Beckend updated successfully')
-  } catch (error) {
-    console.error('Backend sync failed:', error);
-  }
 }
 
 const currentFlag = computed(() => {

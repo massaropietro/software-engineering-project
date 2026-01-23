@@ -13,3 +13,13 @@ class ProjectFactory(DjangoModelFactory):
     )
     zip_file = None
     repo_url = factory.Faker("url")
+
+
+class ProjectFileFactory(DjangoModelFactory):
+    class Meta:
+        model = "projects.ProjectFile"
+
+    project = factory.SubFactory(ProjectFactory)
+    path = factory.Faker("file_path")
+    content = factory.Faker("text")
+    size = factory.Faker("random_int", min=10, max=1000)
