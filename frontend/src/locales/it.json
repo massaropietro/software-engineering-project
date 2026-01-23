@@ -2,7 +2,7 @@
   "projects": "Progetti",
   "nav": {
     "home": "Pagina Iniziale",
-    "contact": "Contattaci",
+    "add-project": "Aggiungi un nuovo progetto",
     "projects": "Progetti"
   },
   "auth": {

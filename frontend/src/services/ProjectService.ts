@@ -19,12 +19,21 @@ export interface FileStructureItem {
   children?: FileStructureItem[];
 }
 
+// Interfaccia per la paginazione standard di DRF
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 export default {
   /**
-   * Get list of projects
+   * Get list of projects with pagination
+   * @param params Query parameters (e.g., { page: 1, search: 'query' })
    */
-  getProjects() {
-    return apiClient.get<Project[]>('/projects/');
+  getProjects(params: Record<string, any> = {}) {
+    return apiClient.get<PaginatedResponse<Project>>('/projects/', { params: { ...params, page_size: 10 } });
   },
 
   /**
@@ -32,12 +41,12 @@ export default {
    * @param id Project ID
    */
   getProject(id: string) {
-    return apiClient.get<Project>(`/projects/${id}`);
+    return apiClient.get<Project>(`/projects/${id}/`);
   },
 
   /**
-   * Create a new project (upload zip or provide repo url)
-   * @param data FormData containing project details and file/url
+   * Create a new project
+   * @param data FormData
    */
   createProject(data: FormData) {
     return apiClient.post<Project>('/projects/', data, {
@@ -65,8 +74,7 @@ export default {
   },
 
   /**
-   * Manually trigger filesystem build (if needed, usually auto via signal)
-   * This is just a placeholder example if we added an explicit action endpoint
+   * Manually trigger filesystem build
    */
   buildFilesystem(id: string) {
     return apiClient.post(`/projects/${id}/build_filesystem/`);

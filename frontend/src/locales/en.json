@@ -2,7 +2,7 @@
   "projects": "Projects",
   "nav": {
     "home": "Home",
-    "contact": "Contact Us",
+    "add-project": "Add a new project",
     "projects": "Projects"
   },
   "auth": {

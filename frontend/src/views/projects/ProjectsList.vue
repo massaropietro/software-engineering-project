@@ -1,20 +1,22 @@
-<!-- frontend/src/views/projects/ProjectsList.vue -->
 <template>
-
     <div class="card">
         <div class="flex justify-between items-center mb-4">
             <div class="font-semibold text-xl">{{ $t('projects') }}</div>
             <Button :label="$t('project_list.new_project')" icon="pi pi-plus" @click="showCreateDialog = true" />
         </div>
+        
         <DataTable
             v-model:filters="filters"
             :value="projects"
+            :lazy="true" 
             paginator
             :rows="10"
+            :totalRecords="totalRecords"
             dataKey="repo_url"
             filterDisplay="row"
             :loading="loading"
             :globalFilterFields="['name', 'repo_url', 'status', 'created']"
+            @page="onPage($event)"
         >
             <template #empty>
                 <div v-if="backendError" class="text-center text-red-500">
@@ -32,7 +34,7 @@
             <!-- Colonna Name -->
             <Column field="name" :header="$t('project_list.headers.name')" style="min-width: 12rem">
                 <template #body="{ data }">
-                    {{ data.name }}
+                    <Button :label="data.name" class="p-button-text" @click="navigateToProject(data)" />
                 </template>
                 <template #filter="{ filterModel, filterCallback }">
                     <InputText v-model="filterModel.value" type="text" @input="filterCallback()" :placeholder="$t('project_list.placeholders.search_by_name')" />
@@ -66,7 +68,6 @@
                     <Tag :value="getTranslatedStatus(data.status)" :severity="getSeverity(data.status)" />
                 </template>
                 <template #filter="{ filterModel, filterCallback }">
-                    <!-- Nome aggiornato: PrimeSelect -> Select (come in main.js) -->
                     <Select v-model="filterModel.value" @change="filterCallback()" :options="statuses" :placeholder="$t('project_list.placeholders.select_one')" showClear>
                         <template #option="slotProps">
                             <Tag :value="getTranslatedStatus(slotProps.option)" :severity="getSeverity(slotProps.option)" />
@@ -74,7 +75,6 @@
                     </Select>
                 </template>
             </Column>
-
         </DataTable>
 
         <ProjectCreateDialog v-model:visible="showCreateDialog" />
@@ -82,7 +82,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { PROJECT_STATUSES, PROJECT_FILTERS } from "@/constants/constants.js";
 import { useApi } from '@/composables/useApi';
@@ -90,11 +91,16 @@ import ProjectService from '@/services/ProjectService';
 import { formatDate, getSeverity } from "@/utils/utils";
 
 const { t } = useI18n();
+const router = useRouter();
 
 const projects = ref([]);
 const filters = ref(PROJECT_FILTERS);
 const statuses = ref(PROJECT_STATUSES);
 const showCreateDialog = ref(false);
+
+
+const totalRecords = ref(0);
+const first = ref(0);
 
 const {
     data: projectsData,
@@ -103,17 +109,23 @@ const {
     execute: fetchProjects
 } = useApi(ProjectService.getProjects);
 
-// Metodi
-const loadProjects = async () => {
-    await fetchProjects();
+const navigateToProject = (project) => {
+    router.push({ name: 'project-details', params: { projectId: project?.id } });
+};
+
+
+const loadProjects = async (page = 1) => {
+    await fetchProjects({ page });
+    
     if (projectsData.value) {
-        // Handle pagination structure { results: [] } or direct array
-        if (projectsData.value.results && Array.isArray(projectsData.value.results)) {
-            projects.value = projectsData.value.results;
-        } else if (Array.isArray(projectsData.value)) {
-            projects.value = projectsData.value;
-        }
+        projects.value = projectsData.value.results || [];
+        totalRecords.value = projectsData.value.count || 0;
     }
+};
+
+const onPage = (event) => {
+    const pageNumber = event.page + 1;
+    loadProjects(pageNumber);
 };
 
 const getTranslatedStatus = (status) => {
@@ -125,6 +137,6 @@ const getTranslatedStatus = (status) => {
 };
 
 onMounted(() => {
-    loadProjects();
+    loadProjects(1);
 });
 </script>

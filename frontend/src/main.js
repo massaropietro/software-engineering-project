@@ -44,8 +44,10 @@ import InputIcon from 'primevue/inputicon';
 import { Form, FormField } from '@primevue/forms';
 import Dialog from 'primevue/dialog';
 import Card from 'primevue/card';
+import {ProgressSpinner} from "primevue";
 import ProjectCreateDialog from '@/views/projects/ProjectCreateDialog.vue';
-import ProjectForm from '@/views/projects/ProjectForm.vue';
+import ProjectForm from '@/components/projects/ProjectForm.vue';
+
 
 // Global Component Registration
 app.component('Message', Message)
@@ -67,7 +69,7 @@ app.component('Dialog', Dialog)
 app.component('Card', Card)
 app.component('ProjectCreateDialog', ProjectCreateDialog)
 app.component('ProjectForm', ProjectForm)
-
+app.component('ProgressSpinner', ProgressSpinner)
 // Directives
 import StyleClass from 'primevue/styleclass';
 

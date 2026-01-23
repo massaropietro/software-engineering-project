@@ -6,9 +6,9 @@ export const navigation = [
     route: 'projects-list',
   },
   {
-    label: 'nav.example',
+    label: 'nav.add-project',
     icon: 'pi pi-file',
-    route: 'example',
+    route: 'project-add',
   },
   // {
   //   label: 'Home',
