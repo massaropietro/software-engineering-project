@@ -63,3 +63,21 @@ class TestProjectViewSet:
         response = client.delete(f"/api/projects/{project.pk}/")
         assert response.status_code == 204
         assert not Project.objects.filter(pk=project.pk).exists()
+
+
+@pytest.mark.django_db
+class TestProjectFileViewSet:
+    def test_retrieve_file(self, client):
+        from backend.projects.tests.factories import ProjectFileFactory
+
+        project_file = ProjectFileFactory(content="Content check")
+        response = client.get(f"/api/files/{project_file.pk}/")
+        assert response.status_code == 200
+        assert response.data["content"] == "Content check"
+        assert response.data["path"] == project_file.path
+
+    def test_retrieve_file_not_found(self, client):
+        import uuid
+
+        response = client.get(f"/api/files/{uuid.uuid4()}/")
+        assert response.status_code == 404
