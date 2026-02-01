@@ -50,6 +50,21 @@
           >
             <i class="pi pi-bars text-xl!" />
           </a>
+
+          <!-- Breadcrumb Spostata Qui (Sinistra) -->
+           <Breadcrumb :home="home" :model="items" class="!bg-transparent !border-none !p-0">
+                <template #item="{ item, props }">
+                    <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+                        <a :href="href" v-bind="props.action" @click="navigate">
+                            <span :class="[item.icon, 'text-color']" />
+                            <span class="text-primary font-semibold">{{ item.label }}</span>
+                        </a>
+                    </router-link>
+                    <a v-else :href="item.url" :target="item.target" v-bind="props.action">
+                        <span class="text-surface-700 dark:text-surface-0">{{ item.label }}</span>
+                    </a>
+                </template>
+            </Breadcrumb>
         </div>
         <div class="flex items-center gap-5">
           <Button
@@ -97,19 +112,38 @@
 </template>
 
 <script setup>
+import { useRoute, useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLayout } from '@/composables/layout'
 import AppConfigurator from '@/components/layout/AppConfigurator.vue'
 import AppMenu from '@/components/layout/AppMenu.vue'
 import { navigation } from '@/constants/navigation.js'
+import Breadcrumb from 'primevue/breadcrumb'
 import itFlag from '@/assets/it.svg'
 import usFlag from '@/assets/us.svg'
+import {getBreadcrumbs} from "@/utils/utils.js";
 
 const { toggleDarkMode, isDark } = useLayout()
 const { locale } = useI18n()
+const route = useRoute()
+const router = useRouter() // Necessario per resolve()
 
 const appConfigurator = ref(null)
+
+// Breadcrumb Logic
+const home = ref({
+    icon: 'pi pi-home',
+    route: '/'
+});
+
+const items = computed(() => {
+    return getBreadcrumbs(route.path, router);
+});
+
+const currentFlag = computed(() => {
+  return locale.value === 'it' ? itFlag : usFlag
+})
 
 function toggleConfigurator(event) {
   appConfigurator.value.toggle(event)
@@ -120,10 +154,6 @@ function toggleLanguage() {
 
   localStorage.setItem('user-locale', locale.value);
 }
-
-const currentFlag = computed(() => {
-  return locale.value === 'it' ? itFlag : usFlag
-})
 </script>
 
 <style scoped>

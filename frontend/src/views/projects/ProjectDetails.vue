@@ -1,10 +1,12 @@
 <template>
-  <div v-if="loading">Loading...</div>
-  <div v-else-if="error">Error: {{ error.message }}</div>
-  <div v-else-if="project">
-    <div v-if="project.file_structure" class="card">
-        <Tree :value="treeNodes" class="w-full"></Tree>
+     <div v-if="loading" class="flex justify-center items-center h-40">
+        <ProgressSpinner/>
     </div>
+    <div v-else-if="error">Error: {{ error.message }}</div>
+    <div v-else-if="project">
+      <div v-if="project.file_structure" class="card">
+          <Tree :value="treeNodes" class="w-full"></Tree>
+      </div>
   </div>
 </template>
 

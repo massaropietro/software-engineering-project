@@ -1,6 +1,59 @@
 {
   "projects": "Projects",
   "nav": {
+    "home": "Home",
+    "add-project": "Add a new project",
     "projects": "Projects"
+  },
+  "auth": {
+    "login": "Sign In"
+  },
+  "project_list": {
+    "new_project" : "New Project",
+    "keyword_search": "Keyword Search",
+    "no_projects_found": "No projects found",
+    "error_loading_projects" : "Error loading projects",
+    "loading": "Loading projects data. Please wait",
+    "headers": {
+      "code": "Project #ID",
+      "name": "Name",
+      "repository": "GitHub repo URL",
+      "status": "Status",
+      "verified": "Verified",
+      "created": "Created At"
+    },
+    "placeholders": {
+      "search_by_id": "Search by ID",
+      "search_by_name": "Search by name",
+      "select_one": "Select One"
+    },
+    "status": {
+      "uploaded": "UPLOADED",
+      "building_filesystem": "BUILDING FILESYSTEM",
+      "filesystem_created": "FILESYSTEM CREATED",
+      "processing_classes": "PROCESSING CLASSES",
+      "analysing": "ANALYSING",
+      "completed": "COMPLETED",
+      "failed": "FAILED",
+      "processing": "IN PROGRESS",
+      "error": "ERROR"
+    }
+  },
+  "project_form": {
+    "title": "New Project",
+    "name": "Project Name",
+    "description": "Project Description",
+    "repo_url": "GitHub Repo URL",
+    "zip_file": "Upload ZIP file",
+    "submit": "Submit Project",
+    "drag_and_drop": "Drag and drop your project here!",
+    "success": "Project submitted successfully.",
+    "errors": {
+      "required_name": "The name field is required.",
+      "required_desc": "The description field is required.",
+      "url_invalid": "Please enter a valid URL.",
+      "file_required": "A ZIP file is required.",
+      "repo_or_zip_required" : "Either a GitHub repository URL or a ZIP file must be provided."
+    }
   }
 }

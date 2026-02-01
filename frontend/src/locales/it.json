@@ -1,6 +1,59 @@
 {
   "projects": "Progetti",
   "nav": {
+    "home": "Pagina Iniziale",
+    "add-project": "Aggiungi un nuovo progetto",
     "projects": "Progetti"
+  },
+  "auth": {
+    "login": "Accedi"
+  },
+  "project_list": {
+    "new_project" : "Nuovo Progetto", 
+    "keyword_search": "Ricerca parola chiave",
+    "no_projects_found": "Nessun progetto trovato",
+    "error_loading_projects" : "Errore nel caricamento dei progetti",
+    "loading": "Caricamento dati progetti. Attendere prego",
+    "headers": {
+      "code": "ID Progetto",
+      "name": "Nome",
+      "repository": "URL GitHub repo",
+      "status": "Stato",
+      "verified": "Verificato",
+      "created": "Creato il"
+    },
+    "placeholders": {
+      "search_by_id": "Cerca per ID",
+      "search_by_name": "Cerca per nome",
+      "select_one": "Seleziona uno"
+    },
+    "status": {
+      "uploaded": "CARICATO",
+      "building_filesystem": "CREAZIONE FILESYSTEM",
+      "filesystem_created": "FILESYSTEM CREATO",
+      "processing_classes": "ELABORAZIONE CLASSI",
+      "analysing": "ANALISI IN CORSO",
+      "completed": "COMPLETATO",
+      "failed": "FALLITO",
+      "processing": "IN CORSO",
+      "error": "ERRORE"
+    }
+  },
+  "project_form": {
+    "title": "Nuovo Progetto",
+    "name": "Nome Progetto",
+    "description": "Descrizione Progetto",
+    "repo_url": "URL Repository GitHub",
+    "zip_file": "Carica file ZIP",
+    "submit": "Invia Progetto",
+    "drag_and_drop": "Trascina qui il tuo progetto!",
+    "success": "Progetto inviato con successo.",
+    "errors": {
+      "required_name": "Il campo nome è obbligatorio.",
+      "required_desc": "Il campo descrizione è obbligatorio.",
+      "url_invalid": "Inserire un URL valido.",
+      "file_required": "È necessario caricare un file ZIP.",
+      "repo_or_zip_required" : "Deve essere fornito un URL del repository GitHub o un file ZIP."
+    }
   }
 }
