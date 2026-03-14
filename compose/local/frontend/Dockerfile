@@ -17,7 +17,7 @@ WORKDIR ${APP_HOME}
 COPY frontend/package*.json .
 
 # --- Installa dipendenze in modo deterministico ---
-RUN npm i
+RUN npm ci
 
 # --- Copia tutto il resto del progetto ---
 COPY frontend/ .

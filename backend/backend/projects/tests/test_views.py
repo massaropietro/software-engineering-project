@@ -1,4 +1,5 @@
 import pytest
+from unittest import mock
 from backend.projects.models import Project
 from backend.projects.tests.factories import ProjectFactory
 
@@ -63,6 +64,22 @@ class TestProjectViewSet:
         response = client.delete(f"/api/projects/{project.pk}/")
         assert response.status_code == 204
         assert not Project.objects.filter(pk=project.pk).exists()
+
+
+    @mock.patch("backend.projects.api.views.build_filesystem_task")
+    def test_retry_build_filesystem(self, mock_task, client):
+        # We manually set the status string since the constant might not exist yet
+        project = ProjectFactory(status="filesystem_build_failed")
+        response = client.post(f"/api/projects/{project.pk}/retry_build_filesystem/")
+
+        assert response.status_code == 200
+        assert mock_task.delay.called
+        assert mock_task.delay.call_args == mock.call(project.pk)
+
+        project.refresh_from_db()
+        # The view itself might not change status immediately if it offloads to task,
+        # but typically we might want to set it to 'building_filesystem' or similar.
+        # For now, let's just assert the task was called and we got 200.
 
 
 @pytest.mark.django_db

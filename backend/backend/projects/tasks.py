@@ -29,5 +29,5 @@ def build_filesystem_task(project_id):
         logger.exception(f"Error building filesystem for project {project_id}: {e}")
 
         project = Project.objects.get(id=project_id)
-        project.status = Project.STATUS.failed
+        project.status = Project.STATUS.filesystem_build_failed
         project.save()

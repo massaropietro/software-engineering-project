@@ -16,6 +16,7 @@ class Project(BaseModel, StatusModel):
         "uploaded",
         "building_filesystem",
         "filesystem_created",
+        "filesystem_build_failed",
         "processing_classes",
         "analysing",
         "failed",
