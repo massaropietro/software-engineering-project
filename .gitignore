@@ -323,7 +323,8 @@ tags
 dump.rdb
 
 ### Project template
-backend/media/
+backend/media/*
+!backend/media/debug_mutmut.py
 
 .pytest_cache/
 .ipython/
