@@ -1,11 +1,11 @@
 from django.db import models
-
-from model_utils.models import StatusModel
-from model_utils.choices import Choices
-
 from django.utils.translation import gettext_lazy as _
 
+from model_utils.choices import Choices
+from model_utils.models import StatusModel
+
 from backend.core.models import BaseModel
+
 from .validators import ProjectValidator
 
 
@@ -37,17 +37,60 @@ class Project(BaseModel, StatusModel):
         return f"{self.name} ({self.status})"
 
 
-class ProjectFile(BaseModel):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="files")
-    path = models.CharField(max_length=1024, db_index=True)
-    content = models.TextField(blank=True, null=True)
-    size = models.PositiveIntegerField(default=0)
+class MutationAnalysis(BaseModel, StatusModel):
+    STATUS = Choices(
+        "pending",
+        "running",
+        "completed",
+        "failed",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="mutation_analyses",
+    )
+    files = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("List of file/directory paths relative to project root to mutate"),
+    )
+    language = models.CharField(max_length=50, default="python")
+    score = models.FloatField(blank=True, null=True)
+    raw_output = models.TextField(blank=True, null=True)
 
     class Meta:
-        verbose_name = _("Project File")
-        verbose_name_plural = _("Project Files")
-        unique_together = ("project", "path")
-        ordering = ["path"]
+        verbose_name = _("Mutation Analysis")
+        verbose_name_plural = _("Mutation Analyses")
+        ordering = ["-created"]
 
     def __str__(self):
-        return f"{self.project.name} - {self.path}"
+        return f"Analysis({self.project.name}, {self.status})"
+
+
+class MutationResult(BaseModel):
+    RESULT_STATUS = Choices(
+        ("killed", _("Killed")),
+        ("survived", _("Survived")),
+        ("timeout", _("Timeout")),
+        ("suspicious", _("Suspicious")),
+    )
+
+    analysis = models.ForeignKey(
+        MutationAnalysis,
+        on_delete=models.CASCADE,
+        related_name="mutants",
+    )
+    file = models.CharField(max_length=1024)
+    mutant_id = models.CharField(max_length=255)
+    status = models.CharField(max_length=50, choices=RESULT_STATUS)
+    line = models.PositiveIntegerField(blank=True, null=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = _("Mutation Result")
+        verbose_name_plural = _("Mutation Results")
+        ordering = ["file", "mutant_id"]
+
+    def __str__(self):
+        return f"Mutant #{self.mutant_id} [{self.status}] in {self.file}"

@@ -11,7 +11,6 @@ class TestProjectViewSet:
         ProjectFactory.create_batch(3)
         response = client.get("/api/projects/")
         assert response.status_code == 200
-        # If pagination is enabled, response.data has 'results'. If not, it's a list.
         data = response.data["results"] if "results" in response.data else response.data
         assert len(data) == 3
 
@@ -65,10 +64,8 @@ class TestProjectViewSet:
         assert response.status_code == 204
         assert not Project.objects.filter(pk=project.pk).exists()
 
-
     @mock.patch("backend.projects.api.views.build_filesystem_task")
     def test_retry_build_filesystem(self, mock_task, client):
-        # We manually set the status string since the constant might not exist yet
         project = ProjectFactory(status="filesystem_build_failed")
         response = client.post(f"/api/projects/{project.pk}/retry_build_filesystem/")
 
@@ -76,25 +73,32 @@ class TestProjectViewSet:
         assert mock_task.delay.called
         assert mock_task.delay.call_args == mock.call(project.pk)
 
-        project.refresh_from_db()
-        # The view itself might not change status immediately if it offloads to task,
-        # but typically we might want to set it to 'building_filesystem' or similar.
-        # For now, let's just assert the task was called and we got 200.
-
-
-@pytest.mark.django_db
-class TestProjectFileViewSet:
-    def test_retrieve_file(self, client):
-        from backend.projects.tests.factories import ProjectFileFactory
-
-        project_file = ProjectFileFactory(content="Content check")
-        response = client.get(f"/api/files/{project_file.pk}/")
+    @mock.patch("backend.projects.services.get_file_content_from_source")
+    def test_file_content_success(self, mock_get_content, client):
+        project = ProjectFactory()
+        mock_get_content.return_value = "file content"
+        response = client.get(f"/api/projects/{project.pk}/file_content/?path=main.py")
+        
         assert response.status_code == 200
-        assert response.data["content"] == "Content check"
-        assert response.data["path"] == project_file.path
+        assert response.data["content"] == "file content"
+        mock_get_content.assert_called_once_with(project, "main.py")
 
-    def test_retrieve_file_not_found(self, client):
-        import uuid
+    def test_file_content_missing_path(self, client):
+        project = ProjectFactory()
+        response = client.get(f"/api/projects/{project.pk}/file_content/")
+        assert response.status_code == 400
+        assert "is required" in response.data["detail"]
 
-        response = client.get(f"/api/files/{uuid.uuid4()}/")
+    @mock.patch("backend.projects.services.get_file_content_from_source")
+    def test_file_content_not_found(self, mock_get_content, client):
+        project = ProjectFactory()
+        mock_get_content.side_effect = FileNotFoundError()
+        response = client.get(f"/api/projects/{project.pk}/file_content/?path=main.py")
         assert response.status_code == 404
+
+    @mock.patch("backend.projects.services.get_file_content_from_source")
+    def test_file_content_invalid_path(self, mock_get_content, client):
+        project = ProjectFactory()
+        mock_get_content.side_effect = ValueError()
+        response = client.get(f"/api/projects/{project.pk}/file_content/?path=../passwd")
+        assert response.status_code == 400

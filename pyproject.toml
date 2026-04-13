@@ -146,6 +146,7 @@ dev = [
     "pytest==9.0.1",
     "pytest-django==4.11.1",
     "pytest-sugar==1.1.1",
+    "pytest-cov==6.0.0",
     "ruff==0.14.6",
     "sphinx==8.2.3",
     "sphinx-autobuild==2025.8.25",
@@ -184,4 +185,5 @@ dependencies = [
     "python-slugify==8.0.4",
     "redis==7.1.0",
     "whitenoise==6.11.0",
+    "mutmut==3.2.1",
 ]

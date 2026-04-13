@@ -1,6 +1,7 @@
 import factory
 from factory.django import DjangoModelFactory
-from backend.projects.models import Project
+
+from backend.projects.models import MutationAnalysis, MutationResult, Project
 
 
 class ProjectFactory(DjangoModelFactory):
@@ -15,11 +16,23 @@ class ProjectFactory(DjangoModelFactory):
     repo_url = factory.Faker("url")
 
 
-class ProjectFileFactory(DjangoModelFactory):
+class MutationAnalysisFactory(DjangoModelFactory):
     class Meta:
-        model = "projects.ProjectFile"
+        model = MutationAnalysis
 
     project = factory.SubFactory(ProjectFactory)
-    path = factory.Faker("file_path")
-    content = factory.Faker("text")
-    size = factory.Faker("random_int", min=10, max=1000)
+    files = factory.LazyFunction(lambda: ["main.py"])
+    language = "python"
+    status = "pending"
+
+
+class MutationResultFactory(DjangoModelFactory):
+    class Meta:
+        model = MutationResult
+
+    analysis = factory.SubFactory(MutationAnalysisFactory)
+    file = "main.py"
+    mutant_id = factory.Sequence(lambda n: str(n + 1))
+    status = "survived"
+    line = factory.Faker("random_int", min=1, max=200)
+    description = ""

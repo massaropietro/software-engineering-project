@@ -1,5 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
+from backend.projects.models import Project, MutationAnalysis, MutationResult
 from backend.projects.tests.factories import ProjectFactory
 
 
@@ -29,3 +30,16 @@ class TestProjectModel:
     def test_str_representation(self):
         project = ProjectFactory(name="Test Project", repo_url="http://test.com")
         assert str(project) == f"{project.name} ({project.status})"
+
+    def test_mutation_analysis_str(self):
+        project = ProjectFactory(name="Test Project")
+        analysis = MutationAnalysis.objects.create(project=project, status="pending")
+        assert str(analysis) == "Analysis(Test Project, pending)"
+
+    def test_mutation_result_str(self):
+        project = ProjectFactory(name="Test Project")
+        analysis = MutationAnalysis.objects.create(project=project, status="completed")
+        result = MutationResult.objects.create(
+            analysis=analysis, file="test.py", mutant_id="123", status="killed"
+        )
+        assert str(result) == "Mutant #123 [killed] in test.py"
