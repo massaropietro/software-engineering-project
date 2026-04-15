@@ -4,11 +4,7 @@ import shutil
 import zipfile
 import os
 import logging
-import configparser
 import sys
-import json
-import resource
-import difflib
 from pathlib import Path
 
 from django.conf import settings
@@ -160,13 +156,12 @@ def _normalize_mutmut_status(raw_status: str) -> str:
     return "survived"
 
 
-import sqlite3
 
 
 def get_mutant_diff(mutant) -> str:
     """
-    Estrae le informazioni sulla mutazione leggendo direttamente il DB SQLite.
-    Bypassa la CLI di mutmut per evitare errori di versione.
+    Estrae le informazioni sulla mutazione usando 'mutmut show' per avere il diff esatto.
+    Non esegue alcun fallback al database in caso di fallimento.
     """
     source_path = get_project_source_path(mutant.analysis.project)
     cache_path = next(source_path.rglob(".mutmut-cache"), None)
@@ -174,30 +169,41 @@ def get_mutant_diff(mutant) -> str:
     if not cache_path:
         return "Errore: file .mutmut-cache non trovato."
 
+    project_root = cache_path.parent
+
     try:
-        conn = sqlite3.connect(str(cache_path))
-        cursor = conn.cursor()
+        env = os.environ.copy()
+        env["NO_COLOR"] = "1"
+        env["TERM"] = "dumb"
 
-        # Prendiamo la riga originale salvata da mutmut 2.x
-        query = """
-            SELECT Line.line, Line.line_number, SourceFile.filename
-            FROM Mutant
-            JOIN Line ON Mutant.line = Line.id
-            JOIN SourceFile ON Line.sourcefile = SourceFile.id
-            WHERE Mutant.id = ?
-        """
-        cursor.execute(query, (mutant.mutant_id,))
-        row = cursor.fetchone()
-        conn.close()
+        result = subprocess.run(
+            ["mutmut", "show", str(mutant.mutant_id)],
+            cwd=str(project_root),
+            capture_output=True,
+            text=True,
+            check=True,
+            env=env,
+            timeout=10
+        )
 
-        if row:
-            line_content, line_no, filename = row
-            return f"File: {filename}\nLine: {line_no}\nOriginal Code: {line_content.strip()}"
+        if result.stdout:
+            return result.stdout.strip()
 
-        return "Dati mutante non trovati nel database."
+    except subprocess.TimeoutExpired:
+        logger.warning(f"[MUTMUT CLI] Timeout eseguendo 'mutmut show {mutant.mutant_id}'. Nessun fallback previsto.")
+        return "<NON DISPONIBILE - Timeout CLI mutmut>"
+    except subprocess.CalledProcessError as e:
+        logger.warning(
+            f"[MUTMUT CLI] Errore eseguendo 'mutmut show {mutant.mutant_id}' (Exit {e}). Nessun fallback previsto.")
+        return "<NON DISPONIBILE - Errore esecuzione CLI mutmut>"
+    except FileNotFoundError:
+        logger.warning("[MUTMUT CLI] L'eseguibile 'mutmut' non è stato trovato nel PATH. Nessun fallback previsto.")
+        return "<NON DISPONIBILE - Eseguibile mutmut non trovato>"
     except Exception as e:
-        return f"Errore lettura DB: {str(e)}"
+        logger.warning(f"[MUTMUT CLI] Errore imprevisto su mutante {mutant.mutant_id}: {e}. Nessun fallback previsto.")
+        return f"<NON DISPONIBILE - Errore imprevisto: {e}>"
 
+    return "<NON DISPONIBILE - Dati non elaborati>"
 def _parse_mutmut_results(cache_path: Path) -> list[dict]:
     """
     Reads the `.mutmut-cache` SQLite database produced by mutmut 2.x.

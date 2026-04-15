@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest import mock
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
-from backend.projects.models import Project, MutationAnalysis, MutationResult
+from backend.projects.models import Project, MutationAnalysis
 from backend.projects.services import (
     get_project_source_path,
     update_project_structure,

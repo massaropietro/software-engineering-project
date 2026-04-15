@@ -3,7 +3,6 @@ from unittest import mock
 from django.core.exceptions import ValidationError
 from backend.projects.models import Project
 from backend.projects.validators import ProjectValidator
-from backend.projects.signals import trigger_filesystem_build
 
 @pytest.mark.django_db
 def test_project_validator():

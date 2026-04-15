@@ -1,4 +1,3 @@
-import os
 import re
 import json
 import logging
@@ -106,8 +105,9 @@ def prompt_huggingface_llm(context_data: dict) -> str:
     """
     Genera il prompt e logga integralmente payload e risposta.
     """
-    hf_api_key = os.environ.get("HF_API_KEY", "")
-    hf_endpoint = os.environ.get("HF_ENDPOINT_URL", "")
+
+    hf_api_key = settings.HF_API_KEY
+    hf_endpoint = settings.HF_ENDPOINT_URL
 
     if not hf_api_key or not hf_endpoint:
         logger.error("[LLM] API Key o Endpoint non configurati.")
@@ -194,7 +194,7 @@ def process_equivalent_mutants(analysis, source_path: Path):
             logger.info(f"[FILTER] Path richiesti: {analysis.files} | Match trovati: {count}")
 
             if count == 0:
-                logger.warning(f"[STOP] Nessun match per i path forniti. L'analisi si ferma.")
+                logger.warning("[STOP] Nessun match per i path forniti. L'analisi si ferma.")
                 # Logghiamo un esempio di cosa c'è nel DB per capire la discrepanza
                 example = MutationResult.objects.filter(analysis=analysis).first()
                 if example:

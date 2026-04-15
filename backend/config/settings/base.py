@@ -309,3 +309,6 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SCHEMA_PATH_PREFIX": "/api/",
 }
+
+HF_API_KEY = env("HF_API_KEY", default="")
+HF_ENDPOINT_URL = env("HF_ENDPOINT_URL", default="")

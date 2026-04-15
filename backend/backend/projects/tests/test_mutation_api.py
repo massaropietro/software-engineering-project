@@ -162,6 +162,6 @@ def test_create_mutation_analysis_succeeds_even_if_pending(client):
     url = reverse("api:analyses-list")
     data = {"project": project.id, "files": [], "language": "python"}
     
-    with patch("backend.projects.tasks.run_mutation_analysis_task.delay") as mock_task:
+    with patch("backend.projects.tasks.run_mutation_analysis_task.delay"):
         response = client.post(url, data, content_type="application/json")
         assert response.status_code == status.HTTP_201_CREATED

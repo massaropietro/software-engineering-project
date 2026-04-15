@@ -1,6 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
-from backend.projects.models import Project, MutationAnalysis, MutationResult
+from backend.projects.models import MutationAnalysis, MutationResult
 from backend.projects.tests.factories import ProjectFactory
 
 

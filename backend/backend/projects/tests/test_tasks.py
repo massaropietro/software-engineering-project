@@ -1,5 +1,4 @@
 import pytest
-import logging
 import shutil
 import tempfile
 import zipfile
