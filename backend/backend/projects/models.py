@@ -84,6 +84,11 @@ class MutationResult(BaseModel):
     file = models.CharField(max_length=1024)
     mutant_id = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=RESULT_STATUS)
+    is_equivalent = models.BooleanField(
+        null=True, 
+        blank=True, 
+        help_text=_("True if Z3 + LLM classified this mutant as equivalent.")
+    )
     line = models.PositiveIntegerField(blank=True, null=True)
     description = models.TextField(blank=True)
 

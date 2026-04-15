@@ -186,4 +186,6 @@ dependencies = [
     "redis==7.1.0",
     "whitenoise==6.11.0",
     "mutmut==3.2.1",
+    "z3-solver>=4.13.0.0",
+    "requests",
 ]
