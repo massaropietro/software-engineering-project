@@ -16,8 +16,18 @@ class ProjectSerializer(BaseModelSerializer):
             "status",
             "created",
             "file_structure",
+            "secret_token",
         ]
-        read_only_fields = ["status", "created", "file_structure"]
+        read_only_fields = ["status", "created", "file_structure", "secret_token"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+
+        if request and request.method != 'POST':
+            data.pop('secret_token', None)
+
+        return data
 
 
 class MutationAnalysisSerializer(BaseModelSerializer):
@@ -53,8 +63,9 @@ class MutationResultSerializer(BaseModelSerializer):
             "file",
             "mutant_id",
             "status",
+            "is_equivalent",
             "line",
             "description",
             "created",
         ]
-        read_only_fields = ["id", "created"]
+        read_only_fields = ["id", "created", "is_equivalent"]

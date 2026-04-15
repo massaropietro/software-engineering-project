@@ -9,7 +9,7 @@
     "login": "Accedi"
   },
   "project_list": {
-    "new_project" : "Nuovo Progetto", 
+    "new_project" : "Nuovo Progetto",
     "keyword_search": "Ricerca parola chiave",
     "no_projects_found": "Nessun progetto trovato",
     "error_loading_projects" : "Errore nel caricamento dei progetti",
@@ -54,6 +54,19 @@
       "url_invalid": "Inserire un URL valido.",
       "file_required": "È necessario caricare un file ZIP.",
       "repo_or_zip_required" : "Deve essere fornito un URL del repository GitHub o un file ZIP."
+    },
+    "requirements": {
+      "title": "Requisiti importanti per l'analisi:",
+      "mutmut": "Assicurati che sia presente il file .mutmut-cache alla root del progetto.",
+      "src_folder": "Assicurati che esista la cartella src/ sotto la root del progetto: da lì partirà tutta l'analisi."
+    },
+    "secret_link": {
+      "warning_title": "Attenzione!",
+      "warning_message": "Salva questo link nei preferiti. È l'unico modo per avviare le analisi su questo progetto in futuro.",
+      "copy_button": "Copia",
+      "go_to_analysis": "Vai all'Analisi",
+      "copied_summary": "Copiato",
+      "copied_detail": "Link copiato negli appunti"
     }
   }
 }

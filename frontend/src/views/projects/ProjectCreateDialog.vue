@@ -9,7 +9,7 @@
     @update:visible="(val) => $emit('update:visible', val)"
     :pt="{ content: { class: '!pb-8' } }"
   >
-    <ProjectForm :showTitle="false" class="w-full" />
+    <ProjectForm :showTitle="false" class="w-full" @success="closeDialog" />
   </Dialog>
 </template>
 
@@ -21,5 +21,9 @@ defineProps({
   }
 });
 
-defineEmits(['update:visible']);
+const emit = defineEmits(['update:visible']);
+
+const closeDialog = () => {
+  emit('update:visible', false);
+};
 </script>

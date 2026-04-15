@@ -78,5 +78,19 @@ export default {
    */
   buildFilesystem(id: string) {
     return apiClient.post(`/projects/${id}/build_filesystem/`);
+  },
+    /**
+   * Get Project by secret token (used for public access)
+   */
+  getProjectByToken(secretToken: string) {
+    return apiClient.get(`/analyses/${secretToken}/project/`);
+  },
+
+  runAnalysisByToken(secretToken: string, payload: Object) {
+    return apiClient.post(`/analyses/`, payload, {
+      headers: {
+        'X-Project-Token': secretToken
+      }
+    });
   }
 };

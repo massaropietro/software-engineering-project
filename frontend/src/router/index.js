@@ -6,7 +6,7 @@ import ProjectCreate from "@/views/projects/ProjectCreate.vue";
 import ProjectDetails from '@/views/projects/ProjectDetails.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import ProjectService from "@/services/ProjectService.js";
-
+import ProjectAnalysis  from "@/components/projects/ProjectAnalysis.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -43,6 +43,14 @@ const router = createRouter({
           ]
         },
         {
+          path: 'analyses/:secretToken',
+          name: 'project-analysis',
+          component: ProjectAnalysis,
+          meta: {
+            title: "Project Analysis"
+          }
+        },
+        {
           path: 'example',
           name: 'example',
           component: ExampleView,
@@ -60,7 +68,6 @@ const router = createRouter({
   ],
 })
 
-// frontend/src/router/index.js (solo beforeEach aggiornato)
 router.beforeEach(async (to, from, next) => {
   try {
     const isProjectRoute =
@@ -83,6 +90,5 @@ router.beforeEach(async (to, from, next) => {
   }
   next();
 });
-
 
 export default router

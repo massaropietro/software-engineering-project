@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -5,7 +6,6 @@ from model_utils.choices import Choices
 from model_utils.models import StatusModel
 
 from backend.core.models import BaseModel
-
 from .validators import ProjectValidator
 
 
@@ -27,6 +27,9 @@ class Project(BaseModel, StatusModel):
     zip_file = models.FileField(upload_to="projects/zips/", blank=True, null=True)
     repo_url = models.URLField(blank=True)
     file_structure = models.JSONField(default=dict, blank=True)
+
+    # Genera automaticamente un UUID univoco e non modificabile alla creazione
+    secret_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     class Meta:
         ordering = ["-created"]
@@ -85,8 +88,8 @@ class MutationResult(BaseModel):
     mutant_id = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=RESULT_STATUS)
     is_equivalent = models.BooleanField(
-        null=True, 
-        blank=True, 
+        null=True,
+        blank=True,
         help_text=_("True if Z3 + LLM classified this mutant as equivalent.")
     )
     line = models.PositiveIntegerField(blank=True, null=True)

@@ -8,7 +8,7 @@ import i18n from '@/plugins/i18n.js'
 
 import "@/assets/main.css"
 import 'primeicons/primeicons.css'
-
+import ProjectAnalysis from "@/components/projects/ProjectAnalysis.vue";
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import ToastService from 'primevue/toastservice';
@@ -70,6 +70,7 @@ app.component('Card', Card)
 app.component('ProjectCreateDialog', ProjectCreateDialog)
 app.component('ProjectForm', ProjectForm)
 app.component('ProgressSpinner', ProgressSpinner)
+app.component('ProjectAnalysis', ProjectAnalysis)
 // Directives
 import StyleClass from 'primevue/styleclass';
 
