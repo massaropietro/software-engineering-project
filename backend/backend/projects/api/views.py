@@ -16,11 +16,12 @@ from backend.projects.services import get_mutant_diff
 
 def verify_project_token(request, project):
     """
-    Verifica che l'header 'X-Project-Token' corrisponda al token segreto del progetto.
+    Verifica che il payload JSON contenga il 'secret_token' corretto del progetto.
+    (Utilizzato per le @action custom)
     """
-    token = request.headers.get("X-Project-Token")
+    token = request.data.get("secret_token")
     if not token or str(project.secret_token) != token:
-        raise PermissionDenied("Token di progetto mancante o non valido. Azione non autorizzata.")
+        raise PermissionDenied("Token di progetto mancante o non valido nel payload. Azione non autorizzata.")
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -76,11 +77,9 @@ class MutationAnalysisViewSet(
         return qs
 
     def create(self, request, *args, **kwargs):
+        # La validazione del secret_token ora avviene automaticamente dentro serializer.is_valid()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        project = serializer.validated_data['project']
-        verify_project_token(request, project)
 
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

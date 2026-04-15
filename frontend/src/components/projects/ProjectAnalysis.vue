@@ -5,7 +5,7 @@
     </div>
 
     <Message v-else-if="error" severity="error" :closable="false">
-      {{ typeof error === 'string' ? error : error?.message || 'Errore di caricamento' }}
+      {{ typeof error === 'string' ? error : error?.message || 'Errore' }}
     </Message>
 
     <template v-else-if="projectData">
@@ -17,67 +17,96 @@
       </div>
 
       <Message severity="info" :closable="false">
-        Seleziona fino a 10 elementi (file o directory sotto <b>src/</b>) su cui eseguire l'analisi.
+        <span v-html="$t('project_analysis.selection_limit_info', { max: MAX_ITEMS })"></span>
       </Message>
 
-      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
+      <div class="rounded-xl border border-surface-200 dark:border-surface-700 p-4 bg-surface-0 dark:bg-surface-900">
 
-        <div class="rounded-xl border border-surface-200 dark:border-surface-700 p-4 overflow-hidden bg-surface-0 dark:bg-surface-900">
-          <div class="flex flex-wrap items-center gap-2 mb-4">
-            <Button icon="pi pi-plus" label="Espandi tutto" outlined size="small" @click="expandAll" />
-            <Button icon="pi pi-minus" label="Chiudi tutto" outlined size="small" @click="collapseAll" />
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div class="flex flex-wrap gap-2 items-center">
+            <Button
+              icon="pi pi-plus"
+              :label="$t('project_analysis.expand')"
+              outlined
+              size="small"
+              @click="expandAll"
+            />
+            <Button
+              icon="pi pi-minus"
+              :label="$t('project_analysis.collapse')"
+              outlined
+              size="small"
+              @click="collapseAll"
+            />
+            <Button
+              icon="pi pi-times"
+              :label="$t('project_analysis.deselect_all')"
+              outlined
+              severity="secondary"
+              size="small"
+              @click="deselectAll"
+            />
+            <Button
+              :label="$t('project_analysis.run_analysis')"
+              icon="pi pi-play"
+              size="small"
+              :disabled="currentTotalFiles === 0 || currentTotalFiles > MAX_ITEMS"
+              :loading="runningAnalysis"
+              @click="runAnalysis"
+            />
           </div>
 
-          <Tree
-            v-model:selectionKeys="selectionKeys"
-            v-model:expandedKeys="expandedKeys"
-            :value="treeNodes"
-            selectionMode="checkbox"
-            :filter="true"
-            filterMode="lenient"
-            class="w-full"
-          >
-            <template #default="{ node }">
-              <div class="flex items-center gap-2 min-w-0">
-
-                <span class="truncate" :class="{ 'text-surface-400 italic': !node.selectable }">
-                  {{ node.label }}
-                </span>
-              </div>
-            </template>
-          </Tree>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold">{{ $t('project_analysis.selected_files') }}:</span>
+            <Tag
+              :value="`${currentTotalFiles}/${MAX_ITEMS}`"
+              :severity="currentTotalFiles > MAX_ITEMS ? 'danger' : 'primary'"
+            />
+          </div>
         </div>
 
-        <div class="rounded-xl border border-surface-200 dark:border-surface-700 p-4 h-fit bg-surface-50 dark:bg-surface-800">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold">Selezionati</h2>
-            <Tag :value="`${selectedPaths.length}/${MAX_ITEMS}`" :severity="selectedPaths.length > MAX_ITEMS ? 'danger' : 'primary'" />
-          </div>
-
-          <ul v-if="selectedPaths.length > 0" class="flex flex-col gap-2 mb-4 max-h-60 overflow-y-auto">
+        <div class="mb-4 bg-surface-50 dark:bg-surface-800 p-3 rounded-lg border border-surface-100 dark:border-surface-700 min-h-[3rem] flex items-center">
+          <ul v-if="selectedPaths.length > 0" class="flex flex-wrap gap-2 w-full m-0 p-0 list-none">
             <li
               v-for="path in selectedPaths"
               :key="path"
-              class="text-xs rounded-md bg-surface-100 dark:bg-surface-700 px-3 py-2 break-all border border-surface-200 dark:border-surface-600"
+              class="text-[11px] rounded bg-surface-200 dark:bg-surface-600 px-2 py-1 break-all flex-shrink-0"
             >
               {{ path }}
             </li>
           </ul>
-
-          <p v-else class="text-sm text-surface-500 mb-4">
-            Nessun elemento selezionato.
+          <p v-else class="text-sm text-surface-500 m-0">
+            {{ $t('project_analysis.no_selection') }}
           </p>
-
-          <Button
-            label="Avvia analisi"
-            icon="pi pi-play"
-            class="w-full"
-            :disabled="selectedPaths.length === 0 || selectedPaths.length > MAX_ITEMS"
-            :loading="runningAnalysis"
-            @click="runAnalysis"
-          />
         </div>
+
+        <Tree
+          v-model:selectionKeys="selectionKeys"
+          v-model:expandedKeys="expandedKeys"
+          :value="treeNodes"
+          selectionMode="checkbox"
+          :filter="true"
+          filterMode="lenient"
+          class="w-full border-none p-0 bg-transparent"
+        >
+          <template #default="slotProps">
+            <div v-if="slotProps.node" class="flex items-center gap-2">
+              <div class="flex flex-col">
+                <span :class="{ 'text-surface-400 italic opacity-60': !slotProps.node.selectable }">
+                  {{ slotProps.node.label }}
+                </span>
+                <small v-if="slotProps.node.data.type === 'directory'" class="text-[10px] opacity-50">
+                  ({{ slotProps.node.data.totalFiles }} {{ $t('project_analysis.files_label') }})
+                </small>
+              </div>
+            </div>
+          </template>
+        </Tree>
+        <div ref="resultsContainerRef">
+          <AnalysisResults v-if="activeAnalysisId" :analysisId="activeAnalysisId" />
       </div>
+      </div>
+
     </template>
   </div>
 </template>
@@ -86,138 +115,178 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
+import { useI18n } from 'vue-i18n';
 import { useApi } from '@/composables/useApi';
 import ProjectService from '@/services/ProjectService';
 import { transformToSelectableTreeNode, type TreeNode } from '@/utils/treeTransforms';
-
-// UI Components (Assicurati che siano importati globalmente o qui se necessario)
+import AnalysisResults from "@/components/analyses/AnalysisResults.vue";
+// UI Components
 import ProgressSpinner from 'primevue/progressspinner';
 import Message from 'primevue/message';
 import Tree from 'primevue/tree';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 
+const { t } = useI18n();
 const MAX_ITEMS = 10;
 const route = useRoute();
 const toast = useToast();
 const secretToken = String(route.params.secretToken || '');
 
-// API Logic
-const {
-  data: apiData,
-  loading,
-  error,
-  execute: fetchProject
-} = useApi(() => ProjectService.getProjectByToken(secretToken));
+const { data: apiData, loading, error, execute: fetchProject } = useApi(() =>
+  ProjectService.getProjectByToken(secretToken)
+);
 
-// Computed data per gestire la reattività in modo fluido
-const projectData = computed(() => {
-  if (!apiData.value) return null;
-  return (apiData.value as any).data || apiData.value;
-});
+const projectData = computed(() => apiData.value?.data || apiData.value);
 
+/**
+ * TRASFORMAZIONE ALBERO
+ * Utilizza il campo 'total_files' inviato dal backend per gestire il peso.
+ */
 const treeNodes = computed(() => {
   if (!projectData.value?.file_structure) return [];
-  return transformToSelectableTreeNode(projectData.value.file_structure);
+
+  const baseNodes = transformToSelectableTreeNode(projectData.value.file_structure);
+
+  const enrichNodes = (nodes: TreeNode[]): TreeNode[] => {
+    return nodes.map(node => {
+      // Directory: usa total_files dal backend | File: peso 1
+      const totalFiles = node.data.type === 'directory' ? (node.data.total_files || 0) : 1;
+
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          totalFiles // mapping camelCase per consistenza frontend
+        },
+        // Selezionabile solo se il contenuto non eccede il limite massimo
+        selectable: node.selectable && totalFiles <= MAX_ITEMS,
+        children: node.children ? enrichNodes(node.children) : undefined
+      };
+    });
+  };
+
+  return enrichNodes(baseNodes);
 });
 
-// Tree State
+// State
 const selectionKeys = ref<Record<string, any>>({});
 const expandedKeys = ref<Record<string, any>>({});
 const previousValidSelectionKeys = ref<Record<string, any>>({});
 const runningAnalysis = ref(false);
-
-// Helper per estrarre i path selezionati
-const getExplicitlySelectedPaths = (nodes: TreeNode[], selection: Record<string, any>): string[] => {
-  let paths: string[] = [];
-  for (const node of nodes) {
-    const state = selection[node.key];
-    if (state?.checked) {
-      paths.push(node.key);
-    } else if (state?.partialChecked && node.children) {
-      paths = paths.concat(getExplicitlySelectedPaths(node.children, selection));
+const activeAnalysisId = ref<string | null>(null);
+const resultsContainerRef = ref<HTMLElement | null>(null);
+/**
+ * Conteggio dinamico basato sui pesi dei nodi selezionati
+ */
+const currentTotalFiles = computed(() => {
+  let total = 0;
+  const traverse = (nodes: TreeNode[]) => {
+    for (const node of nodes) {
+      const state = selectionKeys.value[node.key];
+      if (state?.checked) {
+        total += node.data.totalFiles;
+      } else if (state?.partialChecked && node.children) {
+        traverse(node.children);
+      }
     }
-  }
-  return paths;
-};
-
-const selectedPaths = computed(() => {
-  return getExplicitlySelectedPaths(treeNodes.value, selectionKeys.value);
+  };
+  traverse(treeNodes.value);
+  return total;
 });
 
-// Watcher per validazione limite massimo
-watch(selectionKeys, (newVal) => {
-  const currentPaths = getExplicitlySelectedPaths(treeNodes.value, newVal);
+/**
+ * Estrazione dei path per la chiamata API
+ */
+const selectedPaths = computed(() => {
+  const paths: string[] = [];
+  const extract = (nodes: TreeNode[]) => {
+    for (const node of nodes) {
+      if (selectionKeys.value[node.key]?.checked) {
+        paths.push(node.key);
+      } else if (selectionKeys.value[node.key]?.partialChecked && node.children) {
+        extract(node.children);
+      }
+    }
+  };
+  extract(treeNodes.value);
+  return paths;
+});
 
-  if (currentPaths.length <= MAX_ITEMS) {
-    previousValidSelectionKeys.value = JSON.parse(JSON.stringify(newVal));
-  } else {
-    // Rollback al prossimo ciclo di update per evitare conflitti con l'evento di PrimeVue
+// Watcher per validazione limite (Rollback immediato)
+watch(selectionKeys, (newVal) => {
+  if (currentTotalFiles.value > MAX_ITEMS) {
     nextTick(() => {
       selectionKeys.value = JSON.parse(JSON.stringify(previousValidSelectionKeys.value));
     });
-
     toast.add({
       severity: 'warn',
-      summary: 'Limite raggiunto',
-      detail: `Puoi selezionare al massimo ${MAX_ITEMS} elementi.`,
+      summary: t('project_analysis.limit_reached'),
+      detail: t('project_analysis.limit_reached_detail', { max: MAX_ITEMS }),
       life: 3000
     });
+  } else {
+    previousValidSelectionKeys.value = JSON.parse(JSON.stringify(newVal));
   }
 }, { deep: true });
 
-// Espandi / Chiudi tutto
+// UI Actions
 const expandAll = () => {
   const keys: Record<string, boolean> = {};
   const helper = (nodes: TreeNode[]) => {
-    nodes.forEach(node => {
-      if (node.children && node.children.length > 0) {
-        keys[node.key] = true;
-        helper(node.children);
-      }
-    });
+    nodes.forEach(n => { if (n.children?.length) { keys[n.key] = true; helper(n.children); } });
   };
   helper(treeNodes.value);
   expandedKeys.value = keys;
 };
 
-const collapseAll = () => {
-  expandedKeys.value = {};
+const collapseAll = () => { expandedKeys.value = {}; };
+
+const deselectAll = () => {
+  selectionKeys.value = {};
 };
 
-// Esecuzione Analisi
 const runAnalysis = async () => {
   if (!projectData.value || selectedPaths.value.length === 0) return;
-
   runningAnalysis.value = true;
+  activeAnalysisId.value = null;
+
   try {
     const payload = {
       project: projectData.value.id,
-      files: selectedPaths.value.join(','),
-      language: 'python'
+      files: selectedPaths.value.map((file) => {
+        const idx = file.indexOf('/src/');
+        return idx !== -1 ? file.slice(idx + 1) : file;
+      }),
+      language: 'python',
+      secret_token: secretToken
     };
 
-    await ProjectService.runAnalysisByToken(secretToken, payload);
+    const res = await ProjectService.runAnalysisByToken(payload);
+    activeAnalysisId.value = res.data.id;
+
+    nextTick(() => {
+      if (resultsContainerRef.value) {
+        resultsContainerRef.value.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
 
     toast.add({
       severity: 'success',
-      summary: 'Analisi avviata',
-      detail: `${selectedPaths.value.length} elementi inviati con successo.`,
-      life: 3000
+      summary: t('project_analysis.analysis_started'),
+      detail: t('project_analysis.analysis_started_detail')
     });
   } catch (err: any) {
     toast.add({
       severity: 'error',
-      summary: 'Errore',
-      detail: err?.response?.data?.detail || err?.message || 'Errore durante l’invio.',
-      life: 3000
+      summary: 'Error',
+      detail: err?.message || 'Error occurred during analysis start'
     });
   } finally {
     runningAnalysis.value = false;
   }
-};
-
-onMounted(() => {
-  fetchProject();
-});
+};onMounted(() => fetchProject());
 </script>

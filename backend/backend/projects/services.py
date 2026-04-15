@@ -32,11 +32,15 @@ def get_project_source_path(project) -> Path:
 def _build_file_structure(path: Path, root_path: Path) -> list:
     """
     Recursively scans the directory and returns a JSON-serialisable structure.
+    Each directory entry includes a 'total_files' field representing the
+    recursive count of all files within it.
     """
     items = []
     try:
         with os.scandir(path) as it:
+            # Ordina: prima le directory, poi i file, entrambi in ordine alfabetico
             entries = sorted(it, key=lambda e: (not e.is_dir(), e.name.lower()))
+
             for entry in entries:
                 if entry.name.startswith("."):
                     continue
@@ -49,7 +53,19 @@ def _build_file_structure(path: Path, root_path: Path) -> list:
                 }
 
                 if entry.is_dir():
-                    item["children"] = _build_file_structure(entry.path, root_path)
+                    # Chiamata ricorsiva per ottenere i figli
+                    children = _build_file_structure(entry.path, root_path)
+                    item["children"] = children
+
+                    # Calcola il totale: somma dei total_files dei figli (se directory)
+                    # + 1 per ogni figlio che è un file
+                    count = 0
+                    for child in children:
+                        if child["type"] == "directory":
+                            count += child.get("total_files", 0)
+                        else:
+                            count += 1
+                    item["total_files"] = count
                 else:
                     item["size"] = entry.stat().st_size
 
@@ -58,7 +74,6 @@ def _build_file_structure(path: Path, root_path: Path) -> list:
         logger.error(f"Error scanning {path}: {e}")
 
     return items
-
 
 def update_project_structure(project) -> None:
     """
@@ -277,11 +292,6 @@ def _install_project_dependencies(project_path: Path) -> None:
 
 
 def run_mutation_analysis(analysis) -> None:
-    """
-    Parses the DB, filters the mutants based on analysis.files,
-    computes the real score, and saves ONLY the survived mutants
-    (max 20) that will be processed by the LLM/Z3 analyzer.
-    """
     from backend.projects.models import MutationResult
 
     source_path = get_project_source_path(analysis.project)
@@ -289,7 +299,13 @@ def run_mutation_analysis(analysis) -> None:
     if not source_path.exists():
         raise FileNotFoundError(f"Source directory not found at {source_path}.")
 
-    cache_path = source_path / ".mutmut-cache"
+    cache_path = next(source_path.rglob(".mutmut-cache"), None)
+
+    if not cache_path or not cache_path.exists():
+        logger.warning(f"No mutants found in cache for analysis {analysis.id}")
+        MutationResult.objects.filter(analysis=analysis).delete()
+        return
+
     all_mutants = _parse_mutmut_results(cache_path)
 
     if not all_mutants:
@@ -297,7 +313,6 @@ def run_mutation_analysis(analysis) -> None:
         MutationResult.objects.filter(analysis=analysis).delete()
         return
 
-    # --- 1. FILTRAGGIO IN MEMORIA (Per Path) ---
     filtered_mutants = []
 
     if analysis.files and not (len(analysis.files) == 1 and analysis.files[0] == '/'):
@@ -308,7 +323,6 @@ def run_mutation_analysis(analysis) -> None:
             for fpath in analysis.files:
                 clean_path = fpath[1:] if fpath.startswith('/') else fpath
 
-                # Match esatto per i file .py, startswith per le directory
                 if clean_path.endswith('.py'):
                     if filepath == clean_path:
                         keep = True
@@ -329,19 +343,14 @@ def run_mutation_analysis(analysis) -> None:
         MutationResult.objects.filter(analysis=analysis).delete()
         return
 
-    # --- 2. CALCOLO SCORE GLOBALE (Prima dello slicing) ---
-    # Lo score deve riflettere la totalità dei file analizzati, inclusi i killed
     total = len(filtered_mutants)
     killed_count = sum(1 for m in filtered_mutants if m["status"] in ["killed", "timeout"])
     analysis.score = round(killed_count / total * 100, 2) if total > 0 else 0.0
     analysis.save(update_fields=["score"])
 
-    # --- 3. SELEZIONE ESATTA PER L'ANALIZZATORE (Solo Survived, max 20) ---
     survived_mutants = [m for m in filtered_mutants if m["status"] == "survived"]
     mutants_to_save = survived_mutants[:20]
 
-    # --- 4. SALVATAGGIO PULITO NEL DB ---
-    # Elimina i vecchi record per questa analisi e salva solo i max 20 sopravvissuti
     MutationResult.objects.filter(analysis=analysis).delete()
 
     if mutants_to_save:

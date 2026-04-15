@@ -1,38 +1,37 @@
 <template>
   <div
-    class="resize-container-2 min-h-screen flex relative lg:static bg-surface-50 dark:bg-surface-950"
+    class="resize-container-2 min-h-screen flex items-stretch relative lg:static bg-surface-50 dark:bg-surface-950"
   >
     <div
       id="app-sidebar-colored"
-      class="w-[280px] bg-primary h-screen hidden lg:block shrink-0 absolute lg:static left-0 top-0 z-10 select-none"
+      class="w-[280px] bg-primary hidden lg:flex flex-col shrink-0 absolute lg:static left-0 top-0 z-10 select-none"
     >
-      <div class="flex flex-col h-full">
-        <div class="p-4 flex items-center gap-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="43"
-            height="43"
-            viewBox="0 0 43 43"
-            fill="none"
-            class="w-10 h-10"
-          >
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-              d="M21.5 42.0498C33.098 42.0498 42.5 32.6477 42.5 21.0498C42.5 9.45183 33.098 0.0498047 21.5 0.0498047C9.902 0.0498047 0.5 9.45183 0.5 21.0498C0.5 32.6477 9.902 42.0498 21.5 42.0498ZM28.0513 9.83248C28.3702 8.69975 27.2709 8.02994 26.267 8.74516L12.2528 18.7288C11.164 19.5045 11.3353 21.0498 12.51 21.0498H16.2003V21.0212H23.3926L17.5323 23.089L14.9487 32.2671C14.6299 33.3999 15.729 34.0697 16.733 33.3544L30.7472 23.3708C31.836 22.5951 31.6646 21.0498 30.49 21.0498H24.8937L28.0513 9.83248Z"
-              class="fill-primary-contrast"
-            />
-          </svg>
-          <span class="text-lg font-semibold leading-tight text-primary-contrast">MutantCheck</span>
-        </div>
-        <div class="overflow-y-auto flex-1 p-2 flex flex-col gap-4">
-          <AppMenu :model="navigation" />
-        </div>
+      <div class="p-4 flex items-center gap-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="43"
+          height="43"
+          viewBox="0 0 43 43"
+          fill="none"
+          class="w-10 h-10"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M21.5 42.0498C33.098 42.0498 42.5 32.6477 42.5 21.0498C42.5 9.45183 33.098 0.0498047 21.5 0.0498047C9.902 0.0498047 0.5 9.45183 0.5 21.0498C0.5 32.6477 9.902 42.0498 21.5 42.0498ZM28.0513 9.83248C28.3702 8.69975 27.2709 8.02994 26.267 8.74516L12.2528 18.7288C11.164 19.5045 11.3353 21.0498 12.51 21.0498H16.2003V21.0212H23.3926L17.5323 23.089L14.9487 32.2671C14.6299 33.3999 15.729 34.0697 16.733 33.3544L30.7472 23.3708C31.836 22.5951 31.6646 21.0498 30.49 21.0498H24.8937L28.0513 9.83248Z"
+            class="fill-primary-contrast"
+          />
+        </svg>
+        <span class="text-lg font-semibold leading-tight text-primary-contrast">MutantCheck</span>
+      </div>
+      <div class="overflow-y-auto flex-1 p-2 flex flex-col gap-4">
+        <AppMenu :model="navigation" />
       </div>
     </div>
-    <div class="min-h-screen flex flex-col relative flex-auto">
+
+    <div class="flex-1 flex flex-col min-w-0 relative">
       <div
-        class="flex justify-between items-center py-4 px-8 bg-surface-0 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700 relative lg:static"
+        class="flex justify-between items-center py-4 px-8 bg-surface-0 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700 relative lg:static shrink-0"
       >
         <div class="flex items-center">
           <a
@@ -51,8 +50,7 @@
             <i class="pi pi-bars text-xl!" />
           </a>
 
-          <!-- Breadcrumb Spostata Qui (Sinistra) -->
-           <Breadcrumb :home="home" :model="items" class="!bg-transparent !border-none !p-0">
+          <Breadcrumb :home="home" :model="items" class="!bg-transparent !border-none !p-0">
                 <template #item="{ item, props }">
                     <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
                         <a :href="href" v-bind="props.action" @click="navigate">
@@ -99,7 +97,8 @@
           ></Button>
         </div>
       </div>
-      <div class="p-8 flex flex-col flex-auto">
+
+      <div class="p-8 flex-1 flex flex-col">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -127,11 +126,10 @@ import {getBreadcrumbs} from "@/utils/utils.js";
 const { toggleDarkMode, isDark } = useLayout()
 const { locale } = useI18n()
 const route = useRoute()
-const router = useRouter() // Necessario per resolve()
+const router = useRouter()
 
 const appConfigurator = ref(null)
 
-// Breadcrumb Logic
 const home = ref({
     icon: 'pi pi-home',
     route: '/'
@@ -151,13 +149,11 @@ function toggleConfigurator(event) {
 
 function toggleLanguage() {
   locale.value = locale.value === 'it' ? 'en' : 'it'
-
   localStorage.setItem('user-locale', locale.value);
 }
 </script>
 
 <style scoped>
-/* Transizione Fade */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

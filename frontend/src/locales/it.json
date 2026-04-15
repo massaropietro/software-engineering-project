@@ -9,10 +9,10 @@
     "login": "Accedi"
   },
   "project_list": {
-    "new_project" : "Nuovo Progetto",
+    "new_project": "Nuovo Progetto",
     "keyword_search": "Ricerca parola chiave",
     "no_projects_found": "Nessun progetto trovato",
-    "error_loading_projects" : "Errore nel caricamento dei progetti",
+    "error_loading_projects": "Errore nel caricamento dei progetti",
     "loading": "Caricamento dati progetti. Attendere prego",
     "headers": {
       "code": "ID Progetto",
@@ -53,7 +53,7 @@
       "required_desc": "Il campo descrizione è obbligatorio.",
       "url_invalid": "Inserire un URL valido.",
       "file_required": "È necessario caricare un file ZIP.",
-      "repo_or_zip_required" : "Deve essere fornito un URL del repository GitHub o un file ZIP."
+      "repo_or_zip_required": "Deve essere fornito un URL del repository GitHub o un file ZIP."
     },
     "requirements": {
       "title": "Requisiti importanti per l'analisi:",
@@ -68,5 +68,51 @@
       "copied_summary": "Copiato",
       "copied_detail": "Link copiato negli appunti"
     }
+  },
+  "project_analysis": {
+    "project_structure": "Struttura del Progetto",
+    "deselect_all": "Deseleziona tutti",
+    "selection_limit_info": "Seleziona fino a 10 <b>file totali</b>. Le cartelle che contengono più di 10 file non sono selezionabili direttamente.",
+    "expand": "Espandi",
+    "collapse": "Chiudi",
+    "selected_files": "File selezionati",
+    "no_selection": "Nessuna selezione.",
+    "run_analysis": "Avvia analisi",
+    "analysis_started": "Analisi avviata",
+    "analysis_started_detail": "Il processo di analisi è stato avviato.",
+    "limit_reached": "Limite raggiunto",
+    "limit_reached_detail": "La selezione totale supererebbe i {max} file.",
+    "files_label": "file"
+  },
+  "analysis_results": {
+    "no_description": "Descrizione non disponibile.",
+    "details_btn": "Vedi Dettagli",
+    "dialog_title": "Dettagli Mutazione - ID: {id}",
+    "loading_title": "Analisi in corso...",
+    "loading_desc": "Stiamo analizzando i file selezionati, generando i mutanti e verificando l'equivalenza con l'IA. Questa operazione potrebbe richiedere alcuni minuti.",
+    "error": "Si è verificato un errore durante l'esecuzione dell'analisi.",
+    "global_score": "Score Globale",
+    "total_mutants": "Mutanti Totali",
+    "survived": "Sopravvissuti",
+    "details_title": "Dettaglio Mutanti",
+    "table": {
+      "id": "ID",
+      "file": "File",
+      "line": "Linea",
+      "status": "Stato Mutazione",
+      "ai_result": "Esito IA (Equivalenza)",
+      "actions": "Azioni"
+    },
+    "tags": {
+      "equivalent": "Equivalente",
+      "divergent": "Non equivalente (Real Bug)",
+      "to_verify": "Da verificare"
+    }
+  },
+"analysis_history": {
+    "title": "Storico Analisi",
+    "error": "Errore nel caricamento dello storico delle analisi.",
+    "empty": "Nessuna analisi precedente trovata per questo progetto.",
+    "score": "Score:"
   }
 }

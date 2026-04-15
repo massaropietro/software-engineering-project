@@ -9,10 +9,10 @@
     "login": "Sign In"
   },
   "project_list": {
-    "new_project" : "New Project",
+    "new_project": "New Project",
     "keyword_search": "Keyword Search",
     "no_projects_found": "No projects found",
-    "error_loading_projects" : "Error loading projects",
+    "error_loading_projects": "Error loading projects",
     "loading": "Loading projects data. Please wait",
     "headers": {
       "code": "Project #ID",
@@ -53,7 +53,7 @@
       "required_desc": "The description field is required.",
       "url_invalid": "Please enter a valid URL.",
       "file_required": "A ZIP file is required.",
-      "repo_or_zip_required" : "Either a GitHub repository URL or a ZIP file must be provided."
+      "repo_or_zip_required": "Either a GitHub repository URL or a ZIP file must be provided."
     },
     "requirements": {
       "title": "Important analysis requirements:",
@@ -68,5 +68,51 @@
       "copied_summary": "Copied",
       "copied_detail": "Link copied to clipboard"
     }
+  },
+  "project_analysis": {
+    "project_structure": "Project Structure",
+    "deselect_all": "Deselect all",
+    "selection_limit_info": "Select up to {max} <b>total files</b>. Folders containing more than {max} files cannot be selected directly.",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "selected_files": "Selected Files",
+    "no_selection": "No selection.",
+    "run_analysis": "Run Analysis",
+    "analysis_started": "Analysis Started",
+    "analysis_started_detail": "The analysis process has been triggered.",
+    "limit_reached": "Limit reached",
+    "limit_reached_detail": "Total selection would exceed {max} files.",
+    "files_label": "files"
+  },
+  "analysis_results": {
+    "no_description": "Description not available.",
+    "details_btn": "View Details",
+    "dialog_title": "Mutation Details - ID: {id}",
+    "loading_title": "Analysis in progress...",
+    "loading_desc": "We are analyzing the selected files, generating mutants, and verifying equivalence with AI. This operation may take a few minutes.",
+    "error": "An error occurred while running the analysis.",
+    "global_score": "Overall Score",
+    "total_mutants": "Total Mutants",
+    "survived": "Survived",
+    "details_title": "Mutants Detail",
+    "table": {
+      "id": "ID",
+      "file": "File",
+      "line": "Line",
+      "status": "Mutation Status",
+      "ai_result": "AI Result (Equivalence)",
+      "actions": "Actions"
+    },
+    "tags": {
+      "equivalent": "Equivalent",
+      "divergent": "Not equivalent (Real Bug)",
+      "to_verify": "To be verified"
+    }
+  },
+  "analysis_history": {
+    "title": "Analysis History",
+    "error": "Error loading analysis history.",
+    "empty": "No previous analysis found for this project.",
+    "score": "Score:"
   }
 }

@@ -86,11 +86,25 @@ export default {
     return apiClient.get(`/analyses/${secretToken}/project/`);
   },
 
-  runAnalysisByToken(secretToken: string, payload: Object) {
-    return apiClient.post(`/analyses/`, payload, {
-      headers: {
-        'X-Project-Token': secretToken
-      }
-    });
+  runAnalysisByToken(payload: Record<string, any>) {
+    return apiClient.post(`/analyses/`, payload);
+  },
+  /**
+   * Ottieni le statistiche dell'analisi (per il polling)
+   */
+  getAnalysisStats(analysisId: string) {
+    return apiClient.get(`/analyses/${analysisId}/stats/`);
+  },
+  /**
+   * Ottieni la lista delle analisi filtrate (es. per project ID)
+   */
+  getAnalyses(params: Record<string, any> = {}) {
+    return apiClient.get(`/analyses/`, { params });
+  },
+  /**
+   * Ottieni la lista dei mutanti generati dall'analisi
+   */
+  getMutantResults(analysisId: string) {
+    return apiClient.get(`/mutation-results/?analysis=${analysisId}`);
   }
 };

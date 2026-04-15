@@ -5,7 +5,11 @@
     <div v-else-if="error">Error: {{ error.message }}</div>
     <div v-else-if="project">
       <div v-if="project.file_structure" class="card">
+        <h3 class="text-xl font-bold mb-3 mt-6 text-surface-900 dark:text-surface-0">
+          {{ $t('project_analysis.project_structure') }}
+        </h3>
           <Tree :value="treeNodes" class="w-full"></Tree>
+          <AnalysisHistory :projectId="projectId" />
       </div>
   </div>
 </template>
@@ -16,6 +20,7 @@ import { useApi } from '@/composables/useApi';
 import ProjectService from '@/services/ProjectService';
 import Tree from 'primevue/tree';
 import { transformToTreeNode } from '@/utils/treeTransforms';
+import AnalysisHistory from "@/components/analyses/AnalysisHistory.vue";
 
 const props = defineProps({
   projectId: {
