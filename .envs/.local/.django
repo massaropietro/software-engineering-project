@@ -7,4 +7,5 @@ REDIS_URL=redis://redis:6379/0
 
 CELERY_FLOWER_USER=admin
 CELERY_FLOWER_PASSWORD=admin
-
+HF_API_KEY=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
+HF_ENDPOINT_URL=https://j1l5446plr8ipiv0.us-east-1.aws.endpoints.huggingface.cloud

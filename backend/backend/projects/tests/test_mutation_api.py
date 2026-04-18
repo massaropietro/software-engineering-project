@@ -17,6 +17,7 @@ def test_create_mutation_analysis(client):
         "project": project.id,
         "files": ["main.py", "utils.py"],
         "language": "python",
+        "secret_token": str(project.secret_token),
     }
 
     # Mock the celery task
@@ -92,7 +93,7 @@ def test_retry_mutation_analysis_success(client):
 
     url = reverse("api:analyses-retry", args=[analysis.id])
     with patch("backend.projects.tasks.run_mutation_analysis_task.delay") as mock_task:
-        response = client.post(url)
+        response = client.post(url, data={"secret_token": str(analysis.project.secret_token)}, content_type="application/json")
 
         assert response.status_code == status.HTTP_200_OK
         analysis.refresh_from_db()
@@ -105,7 +106,7 @@ def test_retry_mutation_analysis_fails_if_running(client):
     analysis = MutationAnalysisFactory(status="running")
 
     url = reverse("api:analyses-retry", args=[analysis.id])
-    response = client.post(url)
+    response = client.post(url, data={"secret_token": str(analysis.project.secret_token)}, content_type="application/json")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "detail" in response.data or "non_field_errors" in response.data
@@ -148,7 +149,7 @@ def test_create_mutation_analysis_fails_if_project_failed(client):
     project = ProjectFactory(status="filesystem_build_failed")
     
     url = reverse("api:analyses-list")
-    data = {"project": project.id, "files": [], "language": "python"}
+    data = {"project": project.id, "files": [], "language": "python", "secret_token": str(project.secret_token)}
     
     response = client.post(url, data, content_type="application/json")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -160,7 +161,7 @@ def test_create_mutation_analysis_succeeds_even_if_pending(client):
     project = ProjectFactory(status="pending")
     
     url = reverse("api:analyses-list")
-    data = {"project": project.id, "files": [], "language": "python"}
+    data = {"project": project.id, "files": [], "language": "python", "secret_token": str(project.secret_token)}
     
     with patch("backend.projects.tasks.run_mutation_analysis_task.delay"):
         response = client.post(url, data, content_type="application/json")

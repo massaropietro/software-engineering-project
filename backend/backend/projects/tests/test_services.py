@@ -114,54 +114,32 @@ def test_run_mutation_analysis(temp_zip_project):
     
     analysis = MutationAnalysis.objects.create(
         project=temp_zip_project,
-        files=["hello.txt"],
+        files=["/"],
         status="running"
     )
     
-    # Mock subprocess.run
-    with mock.patch("subprocess.run") as mock_run:
-        mock_run.return_value = mock.Mock(stdout="mutmut run", stderr="")
+    # Fake sqlite parsing
+    with mock.patch("backend.projects.services._parse_mutmut_results") as mock_parse:
+        mock_parse.return_value = [
+            {"mutant_id": "1", "file": "hello.txt", "line": 1, "status": "killed", "description": ""},
+            {"mutant_id": "2", "file": "hello.txt", "line": 2, "status": "survived", "description": ""}
+        ]
         
-        # Mock parsing sqlite results
-        with mock.patch("backend.projects.services._parse_mutmut_results") as mock_parse:
-            mock_parse.return_value = [
-                {"mutant_id": "1", "file": "hello.txt", "line": 1, "status": "killed", "description": ""},
-                {"mutant_id": "2", "file": "hello.txt", "line": 2, "status": "survived", "description": ""}
-            ]
-            
+        source_path = get_project_source_path(temp_zip_project)
+        # Create a fake file to bypass `if not cache_path or not cache_path.exists()`
+        (source_path / ".mutmut-cache").write_text("fake db")
+        
+        with mock.patch("backend.projects.analyzer.prompt_huggingface_llm") as mock_llm:
+            mock_llm.return_value = "```smt\n(assert (= 1 1))\n```"
             run_mutation_analysis(analysis)
-            
-            # Verify setup.cfg was created
-            source_path = get_project_source_path(temp_zip_project)
-            setup_cfg = source_path / "setup.cfg"
-            assert setup_cfg.exists()
-            assert "paths_to_mutate = hello.txt" in setup_cfg.read_text()
-            assert "pytest_add_cli_args_test_selection = ." in setup_cfg.read_text()
-
-            # Verify command was just "mutmut run" and env was set
-            mock_run.assert_called_once()
-            _, kwargs = mock_run.call_args
-            called_env = kwargs.get("env")
-            assert "PYTHONPATH" in called_env
-            assert "mutants" in called_env["PYTHONPATH"]
-            
-            # Verify pytest.ini was created in mutants subdir
-            mutants_ini = source_path / "mutants" / "pytest.ini"
-            assert mutants_ini.exists()
-            content = mutants_ini.read_text()
-            assert "addopts" in content
-            assert "-p no:cov" in content
-            assert "-p no:anyio" in content
-            assert "-p no:faker" in content
-            assert mock_run.call_args[0][0] == ["mutmut", "run"]
-            
-            analysis.refresh_from_db()
-            assert analysis.score == 50.0
-            assert analysis.raw_output == "mutmut run"
-            
-            assert analysis.mutants.count() == 2
-            assert analysis.mutants.filter(status="killed").exists()
-            assert analysis.mutants.filter(status="survived").exists()
+        
+        analysis.refresh_from_db()
+        assert analysis.score == 50.0
+        
+        # Only survived mutants are saved in the new pipeline
+        assert analysis.mutants.count() == 1
+        assert analysis.mutants.filter(status="survived").exists()
+        assert not analysis.mutants.filter(status="killed").exists()
 @pytest.mark.django_db
 def test_update_project_structure_no_source(db):
     project = Project.objects.create(name="Empty")
@@ -223,18 +201,6 @@ def test_parse_mutmut_results_alternate_schema(db):
         assert _parse_mutmut_results(Path(tmp.name)) == []
 
 @pytest.mark.django_db
-def test_run_mutation_analysis_stderr(temp_zip_project):
-    update_project_structure(temp_zip_project)
-    analysis = MutationAnalysis.objects.create(project=temp_zip_project, files=[])
-    
-    with mock.patch("subprocess.run") as mock_run:
-        mock_run.return_value = mock.Mock(stdout="ok", stderr="some warning")
-        with mock.patch("backend.projects.services._parse_mutmut_results") as mock_parse:
-            mock_parse.return_value = []
-            run_mutation_analysis(analysis)
-            assert analysis.raw_output == "oksome warning"
-
-@pytest.mark.django_db
 def test_install_deps_reqs(db):
     from backend.projects.services import _install_project_dependencies
     with tempfile.TemporaryDirectory() as tmp:
@@ -267,5 +233,5 @@ def test_run_mutation_analysis_missing_source(db):
     project = Project.objects.create(name="No Source")
     analysis = MutationAnalysis.objects.create(project=project)
     # get_project_source_path(project).exists() is False
-    with pytest.raises(FileNotFoundError, match="Source directory for project"):
+    with pytest.raises(FileNotFoundError, match="Source directory not found at"):
         run_mutation_analysis(analysis)

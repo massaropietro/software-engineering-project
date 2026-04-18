@@ -67,7 +67,11 @@ class TestProjectViewSet:
     @mock.patch("backend.projects.api.views.build_filesystem_task")
     def test_retry_build_filesystem(self, mock_task, client):
         project = ProjectFactory(status="filesystem_build_failed")
-        response = client.post(f"/api/projects/{project.pk}/retry_build_filesystem/")
+        response = client.post(
+            f"/api/projects/{project.pk}/retry_build_filesystem/",
+            data={"secret_token": str(project.secret_token)},
+            content_type="application/json"
+        )
 
         assert response.status_code == 200
         assert mock_task.delay.called
