@@ -76,7 +76,6 @@ def get_callers_across_project(source_path: Path, func_name: str) -> list[str]:
 
     callers = []
     for py_file in source_path.rglob("*.py"):
-        if "src" not in py_file.parts: continue
         try:
             source_code = py_file.read_text(encoding="utf-8")
             if func_name not in source_code: continue
@@ -174,32 +173,6 @@ def process_equivalent_mutants(analysis, source_path: Path):
     from backend.projects.services import get_mutant_diff
 
     targets = MutationResult.objects.filter(analysis=analysis, status="survived")
-
-    if analysis.files:
-        if len(analysis.files) == 1 and analysis.files[0] == '/':
-            logger.info("[FILTER] Nessun filtro specifico (root /), procedo su tutto il progetto.")
-        else:
-            q_obj = Q()
-            for fpath in analysis.files:
-                clean_path = fpath[1:] if fpath.startswith('/') else fpath
-
-                if clean_path.endswith('.py'):
-                    q_obj |= Q(file__exact=clean_path)
-                else:
-                    dir_path = clean_path if clean_path.endswith('/') else clean_path + '/'
-                    q_obj |= Q(file__startswith=dir_path)
-
-            targets = targets.filter(q_obj)
-            count = targets.count()
-            logger.info(f"[FILTER] Path richiesti: {analysis.files} | Match trovati: {count}")
-
-            if count == 0:
-                logger.warning("[STOP] Nessun match per i path forniti. L'analisi si ferma.")
-                # Logghiamo un esempio di cosa c'è nel DB per capire la discrepanza
-                example = MutationResult.objects.filter(analysis=analysis).first()
-                if example:
-                    logger.info(f"[DEBUG] Esempio di path presente nel DB: '{example.file}'")
-                return
 
     survived_mutants = list(targets[:20])
 

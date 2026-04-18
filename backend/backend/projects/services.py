@@ -25,7 +25,7 @@ def get_project_source_path(project) -> Path:
     return Path(settings.MEDIA_ROOT) / "_projects_sources" / str(project.id) / "source"
 
 
-def _build_file_structure(path: Path, root_path: Path) -> list:
+def _build_file_structure(path: Path, root_path: Path, valid_files: set = None) -> list:
     """
     Recursively scans the directory and returns a JSON-serialisable structure.
     Each directory entry includes a 'total_files' field representing the
@@ -50,7 +50,7 @@ def _build_file_structure(path: Path, root_path: Path) -> list:
 
                 if entry.is_dir():
                     # Chiamata ricorsiva per ottenere i figli
-                    children = _build_file_structure(entry.path, root_path)
+                    children = _build_file_structure(entry.path, root_path, valid_files)
                     item["children"] = children
 
                     # Calcola il totale: somma dei total_files dei figli (se directory)
@@ -64,6 +64,16 @@ def _build_file_structure(path: Path, root_path: Path) -> list:
                     item["total_files"] = count
                 else:
                     item["size"] = entry.stat().st_size
+                    # Verifica validità su .mutmut-cache
+                    if valid_files:
+                        frontend_path_slash = rel_path.replace(os.sep, "/")
+                        is_valid = any(
+                            frontend_path_slash == vf or frontend_path_slash.endswith("/" + vf)
+                            for vf in valid_files
+                        )
+                    else:
+                        is_valid = False
+                    item["selectable_for_analysis"] = is_valid
 
                 items.append(item)
     except OSError as e:
@@ -106,7 +116,19 @@ def update_project_structure(project) -> None:
     else:
         logger.warning(f"Project {project.id} has no zip_file or repo_url")
 
-    structure = _build_file_structure(source_path, source_path)
+    valid_files = set()
+    cache_path = next(source_path.rglob(".mutmut-cache"), None)
+    if cache_path:
+        try:
+            conn = sqlite3.connect(cache_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT filename FROM SourceFile")
+            valid_files = set(row[0].replace("\\", "/") for row in cursor.fetchall() if row[0])
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Failed to read SourceFile from {cache_path}: {e}")
+
+    structure = _build_file_structure(source_path, source_path, valid_files)
     project.file_structure = structure
     project.save(update_fields=["file_structure"])
     logger.info(f"Project {project.id} source ready at {source_path}")
@@ -238,7 +260,7 @@ def _parse_mutmut_results(cache_path: Path) -> list[dict]:
                 results.append(
                     {
                         "mutant_id": str(row["mutant_id"]),
-                        "file": row["file"] or "",
+                        "file": (row["file"] or "").replace("\\", "/"),
                         "line": row["line"] or 0,
                         # Usiamo la nuova funzione per processare "ok_killed" e soci
                         "status": _normalize_mutmut_status(row["status"]),
@@ -330,7 +352,7 @@ def run_mutation_analysis(analysis) -> None:
                 clean_path = fpath[1:] if fpath.startswith('/') else fpath
 
                 if clean_path.endswith('.py'):
-                    if filepath == clean_path:
+                    if clean_path == filepath or clean_path.endswith('/' + filepath):
                         keep = True
                         break
                 else:
