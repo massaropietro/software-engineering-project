@@ -14,7 +14,7 @@ from backend.projects.models import MutationResult
 logger = logging.getLogger(__name__)
 
 
-def parse_and_verify_z3_smt(smt_code: str) -> bool:
+def parse_and_verify_z3_smt(smt_code: str):
     """
     Esegue il codice SMT-LIB v2.6 in Z3.
     """
@@ -33,13 +33,10 @@ def parse_and_verify_z3_smt(smt_code: str) -> bool:
         return result == z3.unsat
     except Exception as e:
         logger.error(f"[Z3-FAIL] Errore sintattico nello script generato: {e}")
-        return False
+        return None
 
 
-def get_function_name_at_line(source_path: Path, target_file_rel: str, line_no: int) -> str:
-    """
-    Individua il nome della funzione/classe via AST.
-    """
+def get_absolute_file_path(source_path: Path, target_file_rel: str) -> Path | None:
     clean_rel = target_file_rel.lstrip("/")
     target_file_abs = source_path / clean_rel
 
@@ -47,10 +44,18 @@ def get_function_name_at_line(source_path: Path, target_file_rel: str, line_no: 
         filename = Path(clean_rel).name
         for p in source_path.rglob(filename):
             if p.as_posix().endswith(clean_rel):
-                target_file_abs = p
-                break
-        else:
-            return ""
+                return p
+        return None
+    return target_file_abs
+
+
+def get_function_name_at_line(source_path: Path, target_file_rel: str, line_no: int) -> str:
+    """
+    Individua il nome della funzione/classe via AST.
+    """
+    target_file_abs = get_absolute_file_path(source_path, target_file_rel)
+    if not target_file_abs:
+        return ""
 
     try:
         source_code = target_file_abs.read_text(encoding="utf-8")
@@ -112,20 +117,27 @@ def prompt_huggingface_llm(context_data: dict) -> str:
         logger.error("[LLM] API Key o Endpoint non configurati.")
         return ""
 
-    role = "Role: You are a formal verification reasoning engine. You translate Python mutation analysis into STRICT SMT-LIB v2.6 code."
+    role = "Role: You are a formal verification reasoning engine and Python mutation analysis expert. You translate Python code analysis into STRICT SMT-LIB v2.6 code."
     context = f"Context (Sliced Code S):\n{json.dumps(context_data, indent=2)}"
     task = """Task: Prove contextual equivalence between original and mutated code.
+We DO NOT know the exact mutation that mutmut applied.
 CoT Steps:
-1. Identify callers and guard conditions.
-2. Define Global Invariant IG based on these guards.
-3. Model original (I_orig) and mutated (I_mut) behavior.
+1. Examine the original code at exactly 'mutated_line'. Identify one or more likely standard Python mutations (e.g. operators like + to -, < to <=, True to False, continue to break, removing a line, etc.) that could occur at that line.
+2. Select the most mathematically relevant/challenging mutation to analyze and explicitly state what you believe the mutated code (I_mut) looks like.
+3. Identify callers and guard conditions from the context.
+4. Define Global Invariant IG based on these guards.
+5. Model original (I_orig) and mutated (I_mut) behavior.
 
 CRITICAL SMT-LIB v2.6 RULES:
-- DO NOT use 'Any' sort. Use 'Int', 'String', 'Bool' or 'Real'.
-- Use (declare-const <var> <sort>) for every variable.
+- ABSOLUTELY NO custom sorts like 'List', 'Either', 'Tuple', 'Array' or 'Any'. Use ONLY 'Int', 'String', 'Bool', or 'Real'.
+- To model Python objects, simplify them into basic Int/Bool/String representations, or use uninterpreted functions.
+- Do NOT declare built-in sorts like 'Bool', 'Int', 'Real', 'String'. They are implicitly available.
+- Use (declare-fun <name> (<sorts>) <sort>) for your variables and functions.
+- Use (declare-const <name> <sort>) for constants.
 - String constants must be in double quotes (e.g., "admin").
 - Use prefix notation: (= x 10), (not (= a b)), (and p q).
-- The final assertion MUST be: (assert (not (= I_orig I_mut))).
+- The final assertion MUST exactly be: (assert (not (= I_orig I_mut))).
+- NEVER define duplicate sorts.
 
 Output ONLY the SMT-LIB code block inside ```smt ... ```."""
 
@@ -170,7 +182,7 @@ def process_equivalent_mutants(analysis, source_path: Path):
     """
     Pipeline principale: match esatto per i file, match 'startswith' per le directory.
     """
-    from backend.projects.services import get_mutant_diff
+    # from backend.projects.services import get_mutant_diff (Removed to avoid diff)
 
     targets = MutationResult.objects.filter(analysis=analysis, status="survived")
 
@@ -191,13 +203,23 @@ def process_equivalent_mutants(analysis, source_path: Path):
                 continue
 
             callers = get_callers_across_project(source_path, func_name)
-            diff_info = get_mutant_diff(mutant)
+            
+            # Extract Original Code snippet (around the mutated line)
+            original_code = ""
+            target_file_abs = get_absolute_file_path(source_path, mutant.file)
+            if target_file_abs:
+                lines = target_file_abs.read_text(encoding="utf-8").splitlines()
+                start_l = max(0, mutant.line - 10)
+                end_l = min(len(lines), mutant.line + 10)
+                # Attaching line numbers for the LLM
+                original_code = "\n".join(f"{i+1}: {lines[i]}" for i in range(start_l, end_l))
 
             context_data = {
                 "mutated_method": func_name,
                 "file": mutant.file,
+                "mutated_line": mutant.line,
+                "original_code_snippet": original_code,
                 "callers": callers,
-                "mutation_context": diff_info
             }
 
             llm_reply = prompt_huggingface_llm(context_data)
@@ -214,7 +236,10 @@ def process_equivalent_mutants(analysis, source_path: Path):
             if smt_block:
                 is_equiv = parse_and_verify_z3_smt(smt_block)
                 mutant.is_equivalent = is_equiv
-                mutant.description += f"\n\n--- SMT-LIB Verification ---\n{smt_block}\nEquivalente: {is_equiv}"
+                if is_equiv is None:
+                    mutant.description += f"\n\n--- SMT-LIB Verification ---\n{smt_block}\nErrore: Sintassi Z3 non valida o costrutti non supportati."
+                else:
+                    mutant.description += f"\n\n--- SMT-LIB Verification ---\n{smt_block}\nEquivalente: {is_equiv}"
 
             mutant.save(update_fields=["is_equivalent", "description"])
 
