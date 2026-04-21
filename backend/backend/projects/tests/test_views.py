@@ -70,7 +70,7 @@ class TestProjectViewSet:
         response = client.post(
             f"/api/projects/{project.pk}/retry_build_filesystem/",
             data={"secret_token": str(project.secret_token)},
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 200
@@ -82,7 +82,7 @@ class TestProjectViewSet:
         project = ProjectFactory()
         mock_get_content.return_value = "file content"
         response = client.get(f"/api/projects/{project.pk}/file_content/?path=main.py")
-        
+
         assert response.status_code == 200
         assert response.data["content"] == "file content"
         mock_get_content.assert_called_once_with(project, "main.py")
@@ -104,5 +104,7 @@ class TestProjectViewSet:
     def test_file_content_invalid_path(self, mock_get_content, client):
         project = ProjectFactory()
         mock_get_content.side_effect = ValueError()
-        response = client.get(f"/api/projects/{project.pk}/file_content/?path=../passwd")
+        response = client.get(
+            f"/api/projects/{project.pk}/file_content/?path=../passwd"
+        )
         assert response.status_code == 400

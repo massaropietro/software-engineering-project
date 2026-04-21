@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0010_mutationanalysis_target_directory'),
+        ("projects", "0010_mutationanalysis_target_directory"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='mutationanalysis',
-            name='target_directory',
+            model_name="mutationanalysis",
+            name="target_directory",
         ),
     ]

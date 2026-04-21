@@ -16,7 +16,10 @@ def test_project_detail_url():
 
 def test_retry_build_url():
     url = "/api/projects/some-uuid/retry_build_filesystem/"
-    assert reverse("api:projects-retry-build-filesystem", kwargs={"pk": "some-uuid"}) == url
+    assert (
+        reverse("api:projects-retry-build-filesystem", kwargs={"pk": "some-uuid"})
+        == url
+    )
     assert resolve(url).view_name == "api:projects-retry-build-filesystem"
 
 
@@ -32,7 +35,10 @@ def test_analyses_list_url():
 
 
 def test_analyses_detail_url():
-    assert reverse("api:analyses-detail", kwargs={"pk": "some-uuid"}) == "/api/analyses/some-uuid/"
+    assert (
+        reverse("api:analyses-detail", kwargs={"pk": "some-uuid"})
+        == "/api/analyses/some-uuid/"
+    )
     assert resolve("/api/analyses/some-uuid/").view_name == "api:analyses-detail"
 
 

@@ -47,14 +47,18 @@ def run_mutation_analysis_task(analysis_id):
     Runs mutmut on the project source and stores results in MutationResult rows.
     """
     try:
-        analysis = MutationAnalysis.objects.select_related("project").get(id=analysis_id)
+        analysis = MutationAnalysis.objects.select_related("project").get(
+            id=analysis_id
+        )
 
         analysis.status = MutationAnalysis.STATUS.running
         analysis.save()
 
         # Ensure filesystem is ready, if not, try to build it now
         if analysis.project.status != Project.STATUS.filesystem_created:
-            logger.info(f"Project filesystem not ready for analysis {analysis_id}. Attempting build.")
+            logger.info(
+                f"Project filesystem not ready for analysis {analysis_id}. Attempting build."
+            )
             update_project_structure(analysis.project)
             analysis.project.status = Project.STATUS.filesystem_created
             analysis.project.save()

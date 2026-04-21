@@ -5,15 +5,29 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0004_projectfile'),
+        ("projects", "0004_projectfile"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='status',
-            field=model_utils.fields.StatusField(choices=[('uploaded', 'uploaded'), ('building_filesystem', 'building_filesystem'), ('filesystem_created', 'filesystem_created'), ('filesystem_build_failed', 'filesystem_build_failed'), ('processing_classes', 'processing_classes'), ('analysing', 'analysing'), ('failed', 'failed'), ('completed', 'completed')], default='uploaded', max_length=100, no_check_for_status=True, verbose_name='status'),
+            model_name="project",
+            name="status",
+            field=model_utils.fields.StatusField(
+                choices=[
+                    ("uploaded", "uploaded"),
+                    ("building_filesystem", "building_filesystem"),
+                    ("filesystem_created", "filesystem_created"),
+                    ("filesystem_build_failed", "filesystem_build_failed"),
+                    ("processing_classes", "processing_classes"),
+                    ("analysing", "analysing"),
+                    ("failed", "failed"),
+                    ("completed", "completed"),
+                ],
+                default="uploaded",
+                max_length=100,
+                no_check_for_status=True,
+                verbose_name="status",
+            ),
         ),
     ]

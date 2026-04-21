@@ -90,7 +90,7 @@ class MutationResult(BaseModel):
     is_equivalent = models.BooleanField(
         null=True,
         blank=True,
-        help_text=_("True if Z3 + LLM classified this mutant as equivalent.")
+        help_text=_("True if Z3 + LLM classified this mutant as equivalent."),
     )
     line = models.PositiveIntegerField(blank=True, null=True)
     description = models.TextField(blank=True)

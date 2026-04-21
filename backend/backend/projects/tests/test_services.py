@@ -44,7 +44,9 @@ def temp_zip_project(db):
 @pytest.mark.django_db
 def test_get_project_source_path(db):
     project = Project.objects.create(name="Test Path")
-    expected_path = Path(settings.MEDIA_ROOT) / "_projects_sources" / str(project.id) / "source"
+    expected_path = (
+        Path(settings.MEDIA_ROOT) / "_projects_sources" / str(project.id) / "source"
+    )
     assert get_project_source_path(project) == expected_path
 
 
@@ -64,7 +66,7 @@ def test_update_project_structure_zip(temp_zip_project):
     subdir = next((i for i in structure if i["name"] == "subdir"), None)
     assert subdir and subdir["type"] == "directory"
     assert len(subdir["children"]) == 1
-    
+
     # Check that disk files exist
     source_path = get_project_source_path(temp_zip_project)
     assert (source_path / "hello.txt").exists()
@@ -89,10 +91,10 @@ def test_update_project_structure_repo(db):
 @pytest.mark.django_db
 def test_get_file_content_from_source(temp_zip_project):
     update_project_structure(temp_zip_project)
-    
+
     content = get_file_content_from_source(temp_zip_project, "hello.txt")
     assert content == "Hello World"
-    
+
     content = get_file_content_from_source(temp_zip_project, "subdir/foo.txt")
     assert content == "Bar"
 
@@ -100,7 +102,7 @@ def test_get_file_content_from_source(temp_zip_project):
 @pytest.mark.django_db
 def test_get_file_content_invalid_path(temp_zip_project):
     update_project_structure(temp_zip_project)
-    
+
     with pytest.raises(ValueError, match="Invalid file path"):
         get_file_content_from_source(temp_zip_project, "../../../etc/passwd")
 
@@ -111,47 +113,63 @@ def test_get_file_content_invalid_path(temp_zip_project):
 @pytest.mark.django_db
 def test_run_mutation_analysis(temp_zip_project):
     update_project_structure(temp_zip_project)
-    
+
     analysis = MutationAnalysis.objects.create(
-        project=temp_zip_project,
-        files=["/"],
-        status="running"
+        project=temp_zip_project, files=["/"], status="running"
     )
-    
+
     # Fake sqlite parsing
     with mock.patch("backend.projects.services._parse_mutmut_results") as mock_parse:
         mock_parse.return_value = [
-            {"mutant_id": "1", "file": "hello.txt", "line": 1, "status": "killed", "description": ""},
-            {"mutant_id": "2", "file": "hello.txt", "line": 2, "status": "survived", "description": ""}
+            {
+                "mutant_id": "1",
+                "file": "hello.txt",
+                "line": 1,
+                "status": "killed",
+                "description": "",
+            },
+            {
+                "mutant_id": "2",
+                "file": "hello.txt",
+                "line": 2,
+                "status": "survived",
+                "description": "",
+            },
         ]
-        
+
         source_path = get_project_source_path(temp_zip_project)
         # Create a fake file to bypass `if not cache_path or not cache_path.exists()`
         (source_path / ".mutmut-cache").write_text("fake db")
-        
+
         with mock.patch("backend.projects.analyzer.prompt_huggingface_llm") as mock_llm:
             mock_llm.return_value = "```smt\n(assert (= 1 1))\n```"
             run_mutation_analysis(analysis)
-        
+
         analysis.refresh_from_db()
         assert analysis.score == 50.0
-        
+
         # Only survived mutants are saved in the new pipeline
         assert analysis.mutants.count() == 1
         assert analysis.mutants.filter(status="survived").exists()
         assert not analysis.mutants.filter(status="killed").exists()
+
+
 @pytest.mark.django_db
 def test_update_project_structure_no_source(db):
     project = Project.objects.create(name="Empty")
     update_project_structure(project)
     assert project.file_structure == []
 
+
 @pytest.mark.django_db
 def test_update_project_structure_git_fail(db):
     project = Project.objects.create(name="Fail", repo_url="https://invalid.url")
-    with mock.patch("subprocess.check_call", side_effect=subprocess.CalledProcessError(1, "git")):
+    with mock.patch(
+        "subprocess.check_call", side_effect=subprocess.CalledProcessError(1, "git")
+    ):
         with pytest.raises(subprocess.CalledProcessError):
             update_project_structure(project)
+
 
 @pytest.mark.django_db
 def test_get_file_content_binary(temp_zip_project):
@@ -159,13 +177,15 @@ def test_get_file_content_binary(temp_zip_project):
     source_path = get_project_source_path(temp_zip_project)
     binary_file = source_path / "binary.bin"
     binary_file.write_bytes(b"\x80\x81\x82")
-    
+
     content = get_file_content_from_source(temp_zip_project, "binary.bin")
     assert content == "<Binary file or unsupported encoding>"
+
 
 @pytest.mark.django_db
 def test_parse_mutmut_results_missing_cache(db):
     assert _parse_mutmut_results(Path("nonexistent")) == []
+
 
 @pytest.mark.django_db
 def test_parse_mutmut_results_error(db):
@@ -173,36 +193,46 @@ def test_parse_mutmut_results_error(db):
         # Invalid sqlite file
         Path(tmp.name).write_text("not a database")
         assert _parse_mutmut_results(Path(tmp.name)) == []
+
+
 @pytest.mark.django_db
 def test_build_file_structure_oserror(db):
     from backend.projects.services import _build_file_structure
+
     with mock.patch("os.scandir", side_effect=OSError("Access denied")):
         results = _build_file_structure(Path("/tmp"), Path("/tmp"))
         assert results == []
 
+
 @pytest.mark.django_db
 def test_update_project_structure_zip_fallback(temp_zip_project):
-    with mock.patch("zipfile.ZipFile.extractall", side_effect=[NotImplementedError, None]):
+    with mock.patch(
+        "zipfile.ZipFile.extractall", side_effect=[NotImplementedError, None]
+    ):
         # First call fails with NotImplementedError, second (fallback) should succeed
         update_project_structure(temp_zip_project)
         assert temp_zip_project.file_structure is not None
 
+
 @pytest.mark.django_db
 def test_parse_mutmut_results_alternate_schema(db):
     from backend.projects.services import _parse_mutmut_results
+
     with tempfile.NamedTemporaryFile() as tmp:
         conn = sqlite3.connect(tmp.name)
         # Create a table with MISSING columns to trigger OperationalError
         conn.execute("CREATE TABLE mutant (wrong_col TEXT)")
         conn.commit()
         conn.close()
-        
+
         # Should not crash, should return empty list and log warning
         assert _parse_mutmut_results(Path(tmp.name)) == []
+
 
 @pytest.mark.django_db
 def test_install_deps_reqs(db):
     from backend.projects.services import _install_project_dependencies
+
     with tempfile.TemporaryDirectory() as tmp:
         p = Path(tmp)
         (p / "requirements.txt").write_text("pytest")
@@ -214,9 +244,11 @@ def test_install_deps_reqs(db):
             assert "uv" in str(mock_run.call_args_list[0][0][0])
             assert "requirements.txt" in str(mock_run.call_args_list[0][0][0])
 
+
 @pytest.mark.django_db
 def test_install_deps_pyproject(db):
     from backend.projects.services import _install_project_dependencies
+
     with tempfile.TemporaryDirectory() as tmp:
         p = Path(tmp)
         (p / "pyproject.toml").write_text("[project]")
@@ -227,6 +259,7 @@ def test_install_deps_pyproject(db):
             # Our implementation tries 'uv' first
             assert "uv" in str(mock_run.call_args_list[0][0][0])
             assert "." in str(mock_run.call_args_list[0][0][0])
+
 
 @pytest.mark.django_db
 def test_run_mutation_analysis_missing_source(db):

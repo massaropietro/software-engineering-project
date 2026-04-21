@@ -85,12 +85,12 @@ def test_build_filesystem_task_generic_exception(temp_zip_project):
 @pytest.mark.django_db
 def test_run_mutation_analysis_task(temp_zip_project):
     from backend.projects.tasks import run_mutation_analysis_task
-    
+
     analysis = MutationAnalysis.objects.create(project=temp_zip_project)
-    
+
     with mock.patch("backend.projects.tasks.run_mutation_analysis") as mock_run:
         run_mutation_analysis_task(analysis.id)
-        
+
         analysis.refresh_from_db()
         assert analysis.status == MutationAnalysis.STATUS.completed
         mock_run.assert_called_once_with(analysis)
@@ -99,73 +99,101 @@ def test_run_mutation_analysis_task(temp_zip_project):
 @pytest.mark.django_db
 def test_run_mutation_analysis_task_exception(temp_zip_project):
     from backend.projects.tasks import run_mutation_analysis_task
-    
+
     analysis = MutationAnalysis.objects.create(project=temp_zip_project)
-    
-    with mock.patch("backend.projects.tasks.run_mutation_analysis", side_effect=Exception("Boom")):
+
+    with mock.patch(
+        "backend.projects.tasks.run_mutation_analysis", side_effect=Exception("Boom")
+    ):
         run_mutation_analysis_task(analysis.id)
-        
+
         analysis.refresh_from_db()
         assert analysis.status == MutationAnalysis.STATUS.failed
+
+
 @pytest.mark.django_db
 def test_run_mutation_analysis_task_not_found(caplog):
     from backend.projects.tasks import run_mutation_analysis_task
+
     run_mutation_analysis_task("00000000-0000-0000-0000-000000000000")
-    assert "MutationAnalysis 00000000-0000-0000-0000-000000000000 not found" in caplog.text
+    assert (
+        "MutationAnalysis 00000000-0000-0000-0000-000000000000 not found" in caplog.text
+    )
+
 
 @pytest.mark.django_db
 def test_build_filesystem_task_critical_error_project_gone(db):
     from backend.projects.tasks import build_filesystem_task
+
     project = Project.objects.create(name="Temp")
-    
-    with mock.patch("backend.projects.tasks.update_project_structure", side_effect=Exception("Boom")):
+
+    with mock.patch(
+        "backend.projects.tasks.update_project_structure", side_effect=Exception("Boom")
+    ):
         with mock.patch("backend.projects.tasks.logger.exception") as mock_log:
-            with mock.patch("backend.projects.models.Project.objects.get", side_effect=[project, Project.DoesNotExist]):
+            with mock.patch(
+                "backend.projects.models.Project.objects.get",
+                side_effect=[project, Project.DoesNotExist],
+            ):
                 # First get succeeds, second (in error handler) fails
                 build_filesystem_task(project.id)
-                
+
     assert mock_log.called
     assert "Error building filesystem" in mock_log.call_args[0][0]
+
 
 @pytest.mark.django_db
 def test_run_mutation_analysis_task_critical_error_analysis_gone(db):
     from backend.projects.tasks import run_mutation_analysis_task
+
     project = Project.objects.create(name="Temp")
     analysis = MutationAnalysis.objects.create(project=project)
-    
-    with mock.patch("backend.projects.tasks.run_mutation_analysis", side_effect=Exception("Boom")):
+
+    with mock.patch(
+        "backend.projects.tasks.run_mutation_analysis", side_effect=Exception("Boom")
+    ):
         with mock.patch("backend.projects.tasks.logger.exception") as mock_log:
-            with mock.patch("backend.projects.models.MutationAnalysis.objects.get", side_effect=MutationAnalysis.DoesNotExist):
-                # We use select_related("project").get(...) in the task, 
+            with mock.patch(
+                "backend.projects.models.MutationAnalysis.objects.get",
+                side_effect=MutationAnalysis.DoesNotExist,
+            ):
+                # We use select_related("project").get(...) in the task,
                 # but simply patching the manager's get often works if not select_related'ed
                 # In tasks.py: MutationAnalysis.objects.select_related("project").get(id=analysis_id)
-                with mock.patch("backend.projects.models.MutationAnalysis.objects.select_related") as mock_select:
-                    mock_select.return_value.get.side_effect = [analysis, MutationAnalysis.DoesNotExist]
+                with mock.patch(
+                    "backend.projects.models.MutationAnalysis.objects.select_related"
+                ) as mock_select:
+                    mock_select.return_value.get.side_effect = [
+                        analysis,
+                        MutationAnalysis.DoesNotExist,
+                    ]
                     run_mutation_analysis_task(analysis.id)
-    
+
     assert mock_log.called
     assert "Error running mutation analysis" in mock_log.call_args[0][0]
+
+
 @pytest.mark.django_db
 def test_run_mutation_analysis_task_auto_build(temp_zip_project):
     from backend.projects.tasks import run_mutation_analysis_task
-    
+
     # Set project status to uploaded (not yet filesystem_created)
     temp_zip_project.status = Project.STATUS.uploaded
     temp_zip_project.save()
-    
+
     analysis = MutationAnalysis.objects.create(project=temp_zip_project)
-    
+
     with mock.patch("backend.projects.tasks.update_project_structure") as mock_build:
         with mock.patch("backend.projects.tasks.run_mutation_analysis") as mock_run:
             run_mutation_analysis_task(analysis.id)
-            
+
             # Verify build was called
             mock_build.assert_called_once_with(temp_zip_project)
             # Verify run was called
             mock_run.assert_called_once_with(analysis)
-            
+
             temp_zip_project.refresh_from_db()
             assert temp_zip_project.status == Project.STATUS.filesystem_created
-            
+
             analysis.refresh_from_db()
             assert analysis.status == MutationAnalysis.STATUS.completed

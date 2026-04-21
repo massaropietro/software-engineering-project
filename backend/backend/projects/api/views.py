@@ -21,14 +21,21 @@ def verify_project_token(request, project):
     """
     token = request.data.get("secret_token")
     if not token or str(project.secret_token) != token:
-        raise PermissionDenied("Token di progetto mancante o non valido nel payload. Azione non autorizzata.")
+        raise PermissionDenied(
+            "Token di progetto mancante o non valido nel payload. Azione non autorizzata."
+        )
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
-    @action(detail=True, methods=["post"], url_path="retry_build_filesystem", url_name="retry-build-filesystem")
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="retry_build_filesystem",
+        url_name="retry-build-filesystem",
+    )
     def retry_build_filesystem(self, request, pk=None):
         project = self.get_object()
         verify_project_token(request, project)
@@ -36,13 +43,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         build_filesystem_task.delay(project.id)
         return Response({"status": "Build retry started"})
 
-    @action(detail=True, methods=["get"], url_path="file_content", url_name="file-content")
+    @action(
+        detail=True, methods=["get"], url_path="file_content", url_name="file-content"
+    )
     def file_content(self, request, pk=None):
         project = self.get_object()
         file_path = request.query_params.get("path")
 
         if not file_path:
-            return Response({"detail": "Query parameter 'path' is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Query parameter 'path' is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         from backend.projects.services import get_file_content_from_source
 
@@ -50,9 +62,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
             content = get_file_content_from_source(project, file_path)
             return Response({"content": content})
         except ValueError:
-            return Response({"detail": "Invalid file path."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid file path."}, status=status.HTTP_400_BAD_REQUEST
+            )
         except FileNotFoundError:
-            return Response({"detail": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "File not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class MutationAnalysisViewSet(
@@ -83,7 +99,9 @@ class MutationAnalysisViewSet(
 
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def perform_create(self, serializer):
         analysis = serializer.save()
@@ -118,18 +136,26 @@ class MutationAnalysisViewSet(
         counts = analysis.mutants.values("status").annotate(count=Count("status"))
         stats_dict = {item["status"]: item["count"] for item in counts}
 
-        return Response({
-            "total": sum(stats_dict.values()),
-            "score": analysis.score,
-            "status": analysis.status,
-            "breakdown": stats_dict
-        })
+        return Response(
+            {
+                "total": sum(stats_dict.values()),
+                "score": analysis.score,
+                "status": analysis.status,
+                "breakdown": stats_dict,
+            }
+        )
 
-    @action(detail=False, methods=["get"], url_path=r"(?P<secret_token>[^/.]+)/project", url_name="project-by-token")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path=r"(?P<secret_token>[^/.]+)/project",
+        url_name="project-by-token",
+    )
     def project_by_token(self, request, secret_token=None):
         project = get_object_or_404(Project, secret_token=secret_token)
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
+
 
 class MutationResultViewSet(
     mixins.ListModelMixin,
@@ -164,5 +190,5 @@ class MutationResultViewSet(
         except Exception as e:
             return Response(
                 {"detail": f"Error generating diff: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

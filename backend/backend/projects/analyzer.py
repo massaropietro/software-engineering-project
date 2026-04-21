@@ -7,7 +7,6 @@ from pathlib import Path
 import z3
 import requests
 from django.conf import settings
-from django.db.models import Q
 
 from backend.projects.models import MutationResult
 
@@ -49,7 +48,9 @@ def get_absolute_file_path(source_path: Path, target_file_rel: str) -> Path | No
     return target_file_abs
 
 
-def get_function_name_at_line(source_path: Path, target_file_rel: str, line_no: int) -> str:
+def get_function_name_at_line(
+    source_path: Path, target_file_rel: str, line_no: int
+) -> str:
     """
     Individua il nome della funzione/classe via AST.
     """
@@ -83,7 +84,8 @@ def get_callers_across_project(source_path: Path, func_name: str) -> list[str]:
     for py_file in source_path.rglob("*.py"):
         try:
             source_code = py_file.read_text(encoding="utf-8")
-            if func_name not in source_code: continue
+            if func_name not in source_code:
+                continue
             tree = ast.parse(source_code)
             lines = source_code.splitlines()
             for node in ast.walk(tree):
@@ -98,9 +100,12 @@ def get_callers_across_project(source_path: Path, func_name: str) -> list[str]:
                             if name == func_name:
                                 start = node.lineno - 1
                                 end = getattr(node, "end_lineno", len(lines))
-                                callers.append(f"File: {py_file.name}\n" + "\n".join(lines[start:end]))
+                                callers.append(
+                                    f"File: {py_file.name}\n"
+                                    + "\n".join(lines[start:end])
+                                )
                                 break
-        except:
+        except Exception:
             continue
     return callers
 
@@ -149,7 +154,10 @@ Output ONLY the SMT-LIB code block inside ```smt ... ```."""
     logger.info(json.dumps(payload, indent=2))
     logger.info("========================================")
 
-    headers = {"Authorization": f"Bearer {hf_api_key}", "Content-Type": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {hf_api_key}",
+        "Content-Type": "application/json",
+    }
 
     try:
         response = requests.post(hf_endpoint, headers=headers, json=payload, timeout=60)
@@ -196,14 +204,16 @@ def process_equivalent_mutants(analysis, source_path: Path):
 
     for mutant in survived_mutants:
         try:
-            logger.info(f"--- [ANALISI] Processando file: {mutant.file} (Linea: {mutant.line}) ---")
+            logger.info(
+                f"--- [ANALISI] Processando file: {mutant.file} (Linea: {mutant.line}) ---"
+            )
 
             func_name = get_function_name_at_line(source_path, mutant.file, mutant.line)
             if not func_name:
                 continue
 
             callers = get_callers_across_project(source_path, func_name)
-            
+
             # Extract Original Code snippet (around the mutated line)
             original_code = ""
             target_file_abs = get_absolute_file_path(source_path, mutant.file)
@@ -212,7 +222,9 @@ def process_equivalent_mutants(analysis, source_path: Path):
                 start_l = max(0, mutant.line - 10)
                 end_l = min(len(lines), mutant.line + 10)
                 # Attaching line numbers for the LLM
-                original_code = "\n".join(f"{i+1}: {lines[i]}" for i in range(start_l, end_l))
+                original_code = "\n".join(
+                    f"{i + 1}: {lines[i]}" for i in range(start_l, end_l)
+                )
 
             context_data = {
                 "mutated_method": func_name,
@@ -231,7 +243,7 @@ def process_equivalent_mutants(analysis, source_path: Path):
             smt_block = smt_match.group(1) if smt_match else ""
 
             if not smt_block and "(declare-const" in llm_reply:
-                smt_block = llm_reply[llm_reply.find("(declare-const"):]
+                smt_block = llm_reply[llm_reply.find("(declare-const") :]
 
             if smt_block:
                 is_equiv = parse_and_verify_z3_smt(smt_block)
