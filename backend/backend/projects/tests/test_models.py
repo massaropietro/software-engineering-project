@@ -31,6 +31,30 @@ class TestProjectModel:
         project = ProjectFactory(name="Test Project", repo_url="http://test.com")
         assert str(project) == f"{project.name} ({project.status})"
 
+    def test_delete_project_removes_filesystem(self, tmp_path, settings):
+        from pathlib import Path
+        settings.MEDIA_ROOT = str(tmp_path)
+        
+        project = ProjectFactory(name="Test Delete")
+        
+        # Create mock project source directory
+        project_dir = Path(settings.MEDIA_ROOT) / "_projects_sources" / str(project.id)
+        project_dir.mkdir(parents=True, exist_ok=True)
+        source_dir = project_dir / "source"
+        source_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create a fake file in the source directory
+        test_file = source_dir / "test.py"
+        test_file.write_text("print('hello')")
+        
+        assert test_file.exists()
+        
+        # Delete the project
+        project.delete()
+        
+        # Verify the directory is removed
+        assert not project_dir.exists()
+
     def test_mutation_analysis_str(self):
         project = ProjectFactory(name="Test Project")
         analysis = MutationAnalysis.objects.create(project=project, status="pending")
