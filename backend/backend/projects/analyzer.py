@@ -76,10 +76,12 @@ def get_callers_across_project(source_path: Path, func_name: str) -> list[str]:
 
     callers = []
     for py_file in source_path.rglob("*.py"):
-        if "src" not in py_file.parts: continue
+        if "src" not in py_file.parts:
+            continue
         try:
             source_code = py_file.read_text(encoding="utf-8")
-            if func_name not in source_code: continue
+            if func_name not in source_code:
+                continue
             tree = ast.parse(source_code)
             lines = source_code.splitlines()
             for node in ast.walk(tree):
@@ -96,7 +98,7 @@ def get_callers_across_project(source_path: Path, func_name: str) -> list[str]:
                                 end = getattr(node, "end_lineno", len(lines))
                                 callers.append(f"File: {py_file.name}\n" + "\n".join(lines[start:end]))
                                 break
-        except:
+        except Exception:
             continue
     return callers
 

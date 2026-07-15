@@ -2,6 +2,8 @@
 With these settings, tests run faster.
 """
 
+from pathlib import Path
+
 from .base import *  # noqa: F403
 from .base import TEMPLATES
 from .base import env
