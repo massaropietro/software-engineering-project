@@ -113,42 +113,30 @@ def test_get_file_content_invalid_path(temp_zip_project):
 @pytest.mark.django_db
 def test_run_mutation_analysis(temp_zip_project):
     update_project_structure(temp_zip_project)
-
+    
     analysis = MutationAnalysis.objects.create(
-        project=temp_zip_project, files=["/"], status="running"
+        project=temp_zip_project,
+        files=["hello.py"],
+        status="running"
     )
-
-    # Fake sqlite parsing
+    
+    source_path = get_project_source_path(temp_zip_project)
+    cache_file = source_path / ".mutmut-cache"
+    cache_file.touch()
+    
     with mock.patch("backend.projects.services._parse_mutmut_results") as mock_parse:
         mock_parse.return_value = [
-            {
-                "mutant_id": "1",
-                "file": "hello.txt",
-                "line": 1,
-                "status": "killed",
-                "description": "",
-            },
-            {
-                "mutant_id": "2",
-                "file": "hello.txt",
-                "line": 2,
-                "status": "survived",
-                "description": "",
-            },
+            {"mutant_id": "1", "file": "hello.py", "line": 1, "status": "killed", "description": ""},
+            {"mutant_id": "2", "file": "hello.py", "line": 2, "status": "survived", "description": ""}
         ]
-
-        source_path = get_project_source_path(temp_zip_project)
-        # Create a fake file to bypass `if not cache_path or not cache_path.exists()`
-        (source_path / ".mutmut-cache").write_text("fake db")
-
-        with mock.patch("backend.projects.analyzer.prompt_huggingface_llm") as mock_llm:
-            mock_llm.return_value = "```smt\n(assert (= 1 1))\n```"
+        
+        with mock.patch("backend.projects.analyzer.process_equivalent_mutants") as mock_process:
             run_mutation_analysis(analysis)
-
+            mock_process.assert_called_once()
+        
         analysis.refresh_from_db()
         assert analysis.score == 50.0
-
-        # Only survived mutants are saved in the new pipeline
+        
         assert analysis.mutants.count() == 1
         assert analysis.mutants.filter(status="survived").exists()
         assert not analysis.mutants.filter(status="killed").exists()
@@ -266,5 +254,5 @@ def test_run_mutation_analysis_missing_source(db):
     project = Project.objects.create(name="No Source")
     analysis = MutationAnalysis.objects.create(project=project)
     # get_project_source_path(project).exists() is False
-    with pytest.raises(FileNotFoundError, match="Source directory not found at"):
+    with pytest.raises(FileNotFoundError, match="Source directory not found"):
         run_mutation_analysis(analysis)
