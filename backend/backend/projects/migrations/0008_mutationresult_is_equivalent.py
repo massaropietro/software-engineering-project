@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0007_alter_mutationanalysis_options_and_more'),
+        ("projects", "0007_alter_mutationanalysis_options_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='mutationresult',
-            name='is_equivalent',
-            field=models.BooleanField(blank=True, help_text='True if Z3 + LLM classified this mutant as equivalent.', null=True),
+            model_name="mutationresult",
+            name="is_equivalent",
+            field=models.BooleanField(
+                blank=True,
+                help_text="True if Z3 + LLM classified this mutant as equivalent.",
+                null=True,
+            ),
         ),
     ]

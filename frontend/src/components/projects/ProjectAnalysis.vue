@@ -254,10 +254,7 @@ const runAnalysis = async () => {
   try {
     const payload = {
       project: projectData.value.id,
-      files: selectedPaths.value.map((file) => {
-        const idx = file.indexOf('/src/');
-        return idx !== -1 ? file.slice(idx + 1) : file;
-      }),
+      files: selectedPaths.value,
       language: 'python',
       secret_token: secretToken
     };

@@ -20,7 +20,8 @@
       "repository": "GitHub repo URL",
       "status": "Status",
       "verified": "Verified",
-      "created": "Created At"
+      "created": "Created At",
+      "actions": "Actions"
     },
     "placeholders": {
       "search_by_id": "Search by ID",
@@ -37,7 +38,10 @@
       "failed": "FAILED",
       "processing": "IN PROGRESS",
       "error": "ERROR"
-    }
+    },
+    "delete_confirm_title": "Confirm deletion",
+    "delete_confirm_message": "Are you sure you want to delete project '{name}'? This action is irreversible.",
+    "delete_success": "Project deleted successfully."
   },
   "project_form": {
     "title": "New Project",

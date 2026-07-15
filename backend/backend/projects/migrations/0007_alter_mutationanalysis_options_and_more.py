@@ -4,29 +4,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0006_mutationanalysis_mutationresult_delete_projectfile'),
+        ("projects", "0006_mutationanalysis_mutationresult_delete_projectfile"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='mutationanalysis',
-            options={'ordering': ['-created'], 'verbose_name': 'Mutation Analysis', 'verbose_name_plural': 'Mutation Analyses'},
+            name="mutationanalysis",
+            options={
+                "ordering": ["-created"],
+                "verbose_name": "Mutation Analysis",
+                "verbose_name_plural": "Mutation Analyses",
+            },
         ),
         migrations.AddField(
-            model_name='mutationanalysis',
-            name='raw_output',
+            model_name="mutationanalysis",
+            name="raw_output",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='mutationresult',
-            name='description',
+            model_name="mutationresult",
+            name="description",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='mutationanalysis',
-            name='files',
-            field=models.JSONField(blank=True, default=list, help_text='List of file/directory paths relative to project root to mutate'),
+            model_name="mutationanalysis",
+            name="files",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="List of file/directory paths relative to project root to mutate",
+            ),
         ),
     ]

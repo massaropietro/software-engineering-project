@@ -3,6 +3,7 @@ from backend.projects.models import Project, MutationAnalysis
 from backend.projects.tasks import build_filesystem_task, run_mutation_analysis_task
 from unittest import mock
 
+
 @pytest.mark.django_db(transaction=True)
 class TestRealMutationAnalysisIntegration:
     """
@@ -16,7 +17,7 @@ class TestRealMutationAnalysisIntegration:
         project = Project.objects.create(
             name="Flask Caching Integration",
             repo_url="https://github.com/pallets-eco/flask-caching.git",
-            status=Project.STATUS.uploaded
+            status=Project.STATUS.uploaded,
         )
 
         # 2. Build Filesystem (clones repo to persistent media dir)
@@ -32,29 +33,48 @@ class TestRealMutationAnalysisIntegration:
             status=MutationAnalysis.STATUS.pending,
             # We don't want to mutate all of flask-caching in test as it's huge,
             # so we'll just mutate a small file to make test faster.
-            # But the user specifically requested to try it on flask-caching. 
+            # But the user specifically requested to try it on flask-caching.
             # We'll mock the actual mutmut run in this CI test but doing everything else real
-            files=["src/flask_caching/__init__.py"] 
+            files=["src/flask_caching/__init__.py"],
         )
 
         assert len(analysis.files) > 0
 
-        with mock.patch("subprocess.run") as mock_run:
-            # Fake the creation of .mutmut-cache database to simulate mutmut success
-            def fake_run(*args, **kwargs):
-                from pathlib import Path
-                cache_dir = Path(kwargs.get("cwd", ".")) / ".mutmut-cache"
-                import sqlite3
-                conn = sqlite3.connect(str(cache_dir))
-                cursor = conn.cursor()
-                cursor.execute("CREATE TABLE IF NOT EXISTS mutant (id INTEGER, source_path TEXT, line_number INTEGER, status TEXT)")
-                cursor.execute("DELETE FROM mutant")  # Clear any previous fake data
-                cursor.execute("INSERT INTO mutant VALUES (1, 'src/flask_caching/__init__.py', 10, 'survived')")
-                conn.commit()
-                conn.close()
-                return mock.Mock(stdout="mutmut run", stderr="")
-            mock_run.side_effect = fake_run
+        # Prepare fake .mutmut-cache before running the task
+        import sqlite3
+        from backend.projects.services import get_project_source_path
 
+        source_path = get_project_source_path(project)
+        cache_dir = source_path / ".mutmut-cache"
+        conn = sqlite3.connect(str(cache_dir))
+        cursor = conn.cursor()
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS SourceFile (id INTEGER PRIMARY KEY, filename TEXT)"
+        )
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS Line (id INTEGER PRIMARY KEY, sourcefile INTEGER, line_number INTEGER)"
+        )
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS Mutant (id INTEGER PRIMARY KEY, line INTEGER, status TEXT)"
+        )
+        cursor.execute("DELETE FROM Mutant")
+        cursor.execute("DELETE FROM Line")
+        cursor.execute("DELETE FROM SourceFile")
+
+        cursor.execute(
+            "INSERT INTO SourceFile (id, filename) VALUES (1, 'src/flask_caching/__init__.py')"
+        )
+        cursor.execute(
+            "INSERT INTO Line (id, sourcefile, line_number) VALUES (1, 1, 10)"
+        )
+        cursor.execute(
+            "INSERT INTO Mutant (id, line, status) VALUES (1, 1, 'survived')"
+        )
+        conn.commit()
+        conn.close()
+
+        with mock.patch("backend.projects.analyzer.prompt_huggingface_llm") as mock_llm:
+            mock_llm.return_value = "```smt\n(assert (= 1 1))\n```"
             # 4. Run Mutation Analysis
             run_mutation_analysis_task(analysis.id)
 

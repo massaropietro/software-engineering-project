@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 # Project filesystem helpers
 # ---------------------------------------------------------------------------
 
+
 def get_project_source_path(project) -> Path:
     """
     Returns the persistent path where the project source code lives.
@@ -25,7 +26,7 @@ def get_project_source_path(project) -> Path:
     return Path(settings.MEDIA_ROOT) / "_projects_sources" / str(project.id) / "source"
 
 
-def _build_file_structure(path: Path, root_path: Path) -> list:
+def _build_file_structure(path: Path, root_path: Path, valid_files: set = None) -> list:
     """
     Recursively scans the directory and returns a JSON-serialisable structure.
     Each directory entry includes a 'total_files' field representing the
@@ -50,7 +51,7 @@ def _build_file_structure(path: Path, root_path: Path) -> list:
 
                 if entry.is_dir():
                     # Chiamata ricorsiva per ottenere i figli
-                    children = _build_file_structure(entry.path, root_path)
+                    children = _build_file_structure(entry.path, root_path, valid_files)
                     item["children"] = children
 
                     # Calcola il totale: somma dei total_files dei figli (se directory)
@@ -64,12 +65,24 @@ def _build_file_structure(path: Path, root_path: Path) -> list:
                     item["total_files"] = count
                 else:
                     item["size"] = entry.stat().st_size
+                    # Verifica validità su .mutmut-cache
+                    if valid_files:
+                        frontend_path_slash = rel_path.replace(os.sep, "/")
+                        is_valid = any(
+                            frontend_path_slash == vf
+                            or frontend_path_slash.endswith("/" + vf)
+                            for vf in valid_files
+                        )
+                    else:
+                        is_valid = False
+                    item["selectable_for_analysis"] = is_valid
 
                 items.append(item)
     except OSError as e:
         logger.error(f"Error scanning {path}: {e}")
 
     return items
+
 
 def update_project_structure(project) -> None:
     """
@@ -93,7 +106,9 @@ def update_project_structure(project) -> None:
                     zf.extractall(source_path)
 
     elif project.repo_url:
-        logger.info(f"Cloning {project.repo_url} for project {project.id} → {source_path}")
+        logger.info(
+            f"Cloning {project.repo_url} for project {project.id} → {source_path}"
+        )
         try:
             subprocess.check_call(
                 ["git", "clone", "--depth", "1", project.repo_url, str(source_path)],
@@ -106,7 +121,21 @@ def update_project_structure(project) -> None:
     else:
         logger.warning(f"Project {project.id} has no zip_file or repo_url")
 
-    structure = _build_file_structure(source_path, source_path)
+    valid_files = set()
+    cache_path = next(source_path.rglob(".mutmut-cache"), None)
+    if cache_path:
+        try:
+            conn = sqlite3.connect(cache_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT filename FROM SourceFile")
+            valid_files = set(
+                row[0].replace("\\", "/") for row in cursor.fetchall() if row[0]
+            )
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Failed to read SourceFile from {cache_path}: {e}")
+
+    structure = _build_file_structure(source_path, source_path, valid_files)
     project.file_structure = structure
     project.save(update_fields=["file_structure"])
     logger.info(f"Project {project.id} source ready at {source_path}")
@@ -136,6 +165,7 @@ def get_file_content_from_source(project, file_path: str) -> str:
 # Mutation analysis
 # ---------------------------------------------------------------------------
 
+
 def _normalize_mutmut_status(raw_status: str) -> str:
     """
     Estrae lo status reale pulendolo da prefissi come 'ok_' o 'bad_'
@@ -154,8 +184,6 @@ def _normalize_mutmut_status(raw_status: str) -> str:
         return "suspicious"
 
     return "survived"
-
-
 
 
 def get_mutant_diff(mutant) -> str:
@@ -183,27 +211,36 @@ def get_mutant_diff(mutant) -> str:
             text=True,
             check=True,
             env=env,
-            timeout=10
+            timeout=10,
         )
 
         if result.stdout:
             return result.stdout.strip()
 
     except subprocess.TimeoutExpired:
-        logger.warning(f"[MUTMUT CLI] Timeout eseguendo 'mutmut show {mutant.mutant_id}'. Nessun fallback previsto.")
+        logger.warning(
+            f"[MUTMUT CLI] Timeout eseguendo 'mutmut show {mutant.mutant_id}'. Nessun fallback previsto."
+        )
         return "<NON DISPONIBILE - Timeout CLI mutmut>"
     except subprocess.CalledProcessError as e:
         logger.warning(
-            f"[MUTMUT CLI] Errore eseguendo 'mutmut show {mutant.mutant_id}' (Exit {e}). Nessun fallback previsto.")
+            f"[MUTMUT CLI] Errore eseguendo 'mutmut show {mutant.mutant_id}' (Exit {e}). Nessun fallback previsto."
+        )
         return "<NON DISPONIBILE - Errore esecuzione CLI mutmut>"
     except FileNotFoundError:
-        logger.warning("[MUTMUT CLI] L'eseguibile 'mutmut' non è stato trovato nel PATH. Nessun fallback previsto.")
+        logger.warning(
+            "[MUTMUT CLI] L'eseguibile 'mutmut' non è stato trovato nel PATH. Nessun fallback previsto."
+        )
         return "<NON DISPONIBILE - Eseguibile mutmut non trovato>"
     except Exception as e:
-        logger.warning(f"[MUTMUT CLI] Errore imprevisto su mutante {mutant.mutant_id}: {e}. Nessun fallback previsto.")
+        logger.warning(
+            f"[MUTMUT CLI] Errore imprevisto su mutante {mutant.mutant_id}: {e}. Nessun fallback previsto."
+        )
         return f"<NON DISPONIBILE - Errore imprevisto: {e}>"
 
     return "<NON DISPONIBILE - Dati non elaborati>"
+
+
 def _parse_mutmut_results(cache_path: Path) -> list[dict]:
     """
     Reads the `.mutmut-cache` SQLite database produced by mutmut 2.x.
@@ -238,7 +275,7 @@ def _parse_mutmut_results(cache_path: Path) -> list[dict]:
                 results.append(
                     {
                         "mutant_id": str(row["mutant_id"]),
-                        "file": row["file"] or "",
+                        "file": (row["file"] or "").replace("\\", "/"),
                         "line": row["line"] or 0,
                         # Usiamo la nuova funzione per processare "ok_killed" e soci
                         "status": _normalize_mutmut_status(row["status"]),
@@ -265,7 +302,8 @@ def _install_project_dependencies(project_path: Path) -> None:
     def run_install(args: list[str]) -> bool:
         try:
             res = subprocess.run(
-                ["uv", "pip", "install", "--target", str(deps_target), "--quiet"] + args,
+                ["uv", "pip", "install", "--target", str(deps_target), "--quiet"]
+                + args,
                 cwd=str(project_path),
                 check=False,
                 capture_output=True,
@@ -277,7 +315,17 @@ def _install_project_dependencies(project_path: Path) -> None:
 
         try:
             res = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "--target", str(deps_target), "--quiet", "--no-input"] + args,
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--target",
+                    str(deps_target),
+                    "--quiet",
+                    "--no-input",
+                ]
+                + args,
                 cwd=str(project_path),
                 check=False,
                 capture_output=True,
@@ -286,12 +334,19 @@ def _install_project_dependencies(project_path: Path) -> None:
         except (FileNotFoundError, subprocess.SubprocessError):
             return False
 
-    req_files = ["requirements.txt", "requirements-dev.txt", "test-requirements.txt", "requirements-test.txt"]
+    req_files = [
+        "requirements.txt",
+        "requirements-dev.txt",
+        "test-requirements.txt",
+        "requirements-test.txt",
+    ]
     for rf in req_files:
         if (project_path / rf).exists():
             run_install(["-r", rf])
 
-    if (project_path / "setup.py").exists() or (project_path / "pyproject.toml").exists():
+    if (project_path / "setup.py").exists() or (
+        project_path / "pyproject.toml"
+    ).exists():
         run_install(["."])
         for extra in ["test", "tests", "dev"]:
             run_install([f".[ {extra}]"])
@@ -321,20 +376,22 @@ def run_mutation_analysis(analysis) -> None:
 
     filtered_mutants = []
 
-    if analysis.files and not (len(analysis.files) == 1 and analysis.files[0] == '/'):
+    if analysis.files and not (len(analysis.files) == 1 and analysis.files[0] == "/"):
         for m in all_mutants:
             filepath = m["file"]
             keep = False
 
             for fpath in analysis.files:
-                clean_path = fpath[1:] if fpath.startswith('/') else fpath
+                clean_path = fpath[1:] if fpath.startswith("/") else fpath
 
-                if clean_path.endswith('.py'):
-                    if filepath == clean_path:
+                if clean_path.endswith(".py"):
+                    if clean_path == filepath or clean_path.endswith("/" + filepath):
                         keep = True
                         break
                 else:
-                    dir_path = clean_path if clean_path.endswith('/') else clean_path + '/'
+                    dir_path = (
+                        clean_path if clean_path.endswith("/") else clean_path + "/"
+                    )
                     if filepath.startswith(dir_path):
                         keep = True
                         break
@@ -345,12 +402,16 @@ def run_mutation_analysis(analysis) -> None:
         filtered_mutants = all_mutants
 
     if not filtered_mutants:
-        logger.warning(f"Nessun mutante corrisponde ai filtri {analysis.files} per l'analisi {analysis.id}")
+        logger.warning(
+            f"Nessun mutante corrisponde ai filtri {analysis.files} per l'analisi {analysis.id}"
+        )
         MutationResult.objects.filter(analysis=analysis).delete()
         return
 
     total = len(filtered_mutants)
-    killed_count = sum(1 for m in filtered_mutants if m["status"] in ["killed", "timeout"])
+    killed_count = sum(
+        1 for m in filtered_mutants if m["status"] in ["killed", "timeout"]
+    )
     analysis.score = round(killed_count / total * 100, 2) if total > 0 else 0.0
     analysis.save(update_fields=["score"])
 
@@ -374,6 +435,7 @@ def run_mutation_analysis(analysis) -> None:
         MutationResult.objects.bulk_create(result_objs)
 
     from backend.projects.analyzer import process_equivalent_mutants
+
     process_equivalent_mutants(analysis, source_path)
 
     logger.info(

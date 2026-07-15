@@ -8,49 +8,145 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0005_alter_project_status'),
+        ("projects", "0005_alter_project_status"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MutationAnalysis',
+            name="MutationAnalysis",
             fields=[
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('status', model_utils.fields.StatusField(choices=[('pending', 'pending'), ('running', 'running'), ('completed', 'completed'), ('failed', 'failed')], default='pending', max_length=100, no_check_for_status=True, verbose_name='status')),
-                ('status_changed', model_utils.fields.MonitorField(default=django.utils.timezone.now, monitor='status', verbose_name='status changed')),
-                ('id', model_utils.fields.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('files', models.JSONField(blank=True, default=list, help_text='List of file paths relative to project root')),
-                ('language', models.CharField(default='python', max_length=50)),
-                ('score', models.FloatField(blank=True, null=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mutation_analyses', to='projects.project')),
+                (
+                    "created",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name="created",
+                    ),
+                ),
+                (
+                    "modified",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name="modified",
+                    ),
+                ),
+                (
+                    "status",
+                    model_utils.fields.StatusField(
+                        choices=[
+                            ("pending", "pending"),
+                            ("running", "running"),
+                            ("completed", "completed"),
+                            ("failed", "failed"),
+                        ],
+                        default="pending",
+                        max_length=100,
+                        no_check_for_status=True,
+                        verbose_name="status",
+                    ),
+                ),
+                (
+                    "status_changed",
+                    model_utils.fields.MonitorField(
+                        default=django.utils.timezone.now,
+                        monitor="status",
+                        verbose_name="status changed",
+                    ),
+                ),
+                (
+                    "id",
+                    model_utils.fields.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "files",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="List of file paths relative to project root",
+                    ),
+                ),
+                ("language", models.CharField(default="python", max_length=50)),
+                ("score", models.FloatField(blank=True, null=True)),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mutation_analyses",
+                        to="projects.project",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Mutation Analysis',
-                'verbose_name_plural': 'Mutation Analyses',
+                "verbose_name": "Mutation Analysis",
+                "verbose_name_plural": "Mutation Analyses",
             },
         ),
         migrations.CreateModel(
-            name='MutationResult',
+            name="MutationResult",
             fields=[
-                ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
-                ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('id', model_utils.fields.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('file', models.CharField(max_length=1024)),
-                ('mutant_id', models.CharField(max_length=255)),
-                ('status', models.CharField(choices=[('killed', 'Killed'), ('survived', 'Survived'), ('timeout', 'Timeout'), ('suspicious', 'Suspicious')], max_length=50)),
-                ('line', models.PositiveIntegerField(blank=True, null=True)),
-                ('analysis', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mutants', to='projects.mutationanalysis')),
+                (
+                    "created",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name="created",
+                    ),
+                ),
+                (
+                    "modified",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now,
+                        editable=False,
+                        verbose_name="modified",
+                    ),
+                ),
+                (
+                    "id",
+                    model_utils.fields.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("file", models.CharField(max_length=1024)),
+                ("mutant_id", models.CharField(max_length=255)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("killed", "Killed"),
+                            ("survived", "Survived"),
+                            ("timeout", "Timeout"),
+                            ("suspicious", "Suspicious"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("line", models.PositiveIntegerField(blank=True, null=True)),
+                (
+                    "analysis",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mutants",
+                        to="projects.mutationanalysis",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Mutation Result',
-                'verbose_name_plural': 'Mutation Results',
-                'ordering': ['file', 'mutant_id'],
+                "verbose_name": "Mutation Result",
+                "verbose_name_plural": "Mutation Results",
+                "ordering": ["file", "mutant_id"],
             },
         ),
         migrations.DeleteModel(
-            name='ProjectFile',
+            name="ProjectFile",
         ),
     ]

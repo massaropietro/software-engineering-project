@@ -6,6 +6,8 @@ export interface FileStructureItem {
   type: 'file' | 'directory';
   size?: number;
   children?: FileStructureItem[];
+  selectable_for_analysis?: boolean;
+  total_files?: number;
 }
 
 export interface TreeNode {
@@ -56,20 +58,41 @@ export const transformToTreeNode = (
  * - Stores the full item object in `data`.
  *
  * @param items List of file structure items from backend
- * @param isUnderSrc Boolean tracking if the current tree level is inside 'src/'
  * @returns Array of TreeNodes
  */
 export const transformToSelectableTreeNode = (
-  items: FileStructureItem[],
-  isUnderSrc: boolean = false
+  items: FileStructureItem[]
 ): TreeNode[] => {
   if (!items) return [];
+
+  // Helper properties to deeply check selectable_for_analysis
+  const checkAllFilesSelectable = (subItems: FileStructureItem[]): boolean => {
+    if (!subItems || subItems.length === 0) return true;
+    for (const sub of subItems) {
+      if (sub.type === 'directory') {
+        if (!checkAllFilesSelectable(sub.children || [])) return false;
+      } else {
+        if (sub.selectable_for_analysis !== true) return false;
+      }
+    }
+    return true;
+  };
 
   return items.map((item) => {
     const isDirectory = item.type === 'directory';
 
-    const isSrcFolder = item.name === 'src' && isDirectory;
-    const currentlyUnderSrc = isUnderSrc || isSrcFolder;
+    let isSelectable = false;
+    if (isDirectory) {
+      const totalFiles = typeof item.total_files === 'number' ? item.total_files : 0;
+      
+      const allSelectable = checkAllFilesSelectable(item.children || []);
+      
+      // Una folder per essere selezionabile deve avere < 10 file,
+      // e non essere vuota (almeno 1 file), e tutti i file devono essere selezionabili
+      isSelectable = totalFiles > 0 && totalFiles < 10 && allSelectable;
+    } else {
+      isSelectable = item.selectable_for_analysis === true;
+    }
 
     return {
       key: item.path,
@@ -77,9 +100,9 @@ export const transformToSelectableTreeNode = (
       data: item,
       icon: isDirectory ? 'pi pi-fw pi-folder' : 'pi pi-fw pi-file',
       leaf: !isDirectory,
-      selectable: currentlyUnderSrc,
+      selectable: isSelectable,
       children: item.children
-        ? transformToSelectableTreeNode(item.children, currentlyUnderSrc)
+        ? transformToSelectableTreeNode(item.children)
         : undefined
     };
   });
