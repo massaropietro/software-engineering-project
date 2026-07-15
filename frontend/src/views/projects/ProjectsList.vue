@@ -75,6 +75,17 @@
                     </Select>
                 </template>
             </Column>
+
+            <!-- Colonna Azioni -->
+            <Column :header="$t('project_list.headers.actions')" style="min-width: 6rem">
+                <template #body="{ data }">
+                    <Button 
+                        icon="pi pi-trash" 
+                        class="p-button-rounded p-button-danger p-button-text" 
+                        @click="confirmDeleteProject(data)" 
+                    />
+                </template>
+            </Column>
         </DataTable>
 
         <ProjectCreateDialog v-model:visible="showCreateDialog" />
@@ -85,6 +96,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useToast } from 'primevue/usetoast';
 import { PROJECT_STATUSES, PROJECT_FILTERS } from "@/constants/constants.js";
 import { useApi } from '@/composables/useApi';
 import ProjectService from '@/services/ProjectService';
@@ -92,6 +104,7 @@ import { formatDate, getSeverity } from "@/utils/utils";
 
 const { t } = useI18n();
 const router = useRouter();
+const toast = useToast();
 
 const projects = ref([]);
 const filters = ref(PROJECT_FILTERS);
@@ -100,7 +113,6 @@ const showCreateDialog = ref(false);
 
 
 const totalRecords = ref(0);
-const first = ref(0);
 
 const {
     data: projectsData,
@@ -113,6 +125,30 @@ const navigateToProject = (project) => {
     router.push({ name: 'project-details', params: { projectId: project?.id } });
 };
 
+const confirmDeleteProject = async (project) => {
+    const confirmed = window.confirm(
+        t('project_list.delete_confirm_message', { name: project.name })
+    );
+    if (!confirmed) return;
+
+    try {
+        await ProjectService.deleteProject(project.id);
+        toast.add({
+            severity: 'success',
+            summary: t('project_list.delete_confirm_title'),
+            detail: t('project_list.delete_success'),
+            life: 3000
+        });
+        loadProjects(1);
+    } catch (err) {
+        toast.add({
+            severity: 'error',
+            summary: 'Errore',
+            detail: err.response?.data?.detail || 'Errore durante l\'eliminazione del progetto',
+            life: 3000
+        });
+    }
+};
 
 const loadProjects = async (page = 1) => {
     await fetchProjects({ page });
